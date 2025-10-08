@@ -29,8 +29,7 @@ public class GaussianGenerator implements DataGenerator {
         return data;
     }
 
-    @Override
-    public void setNumberInMap(Double val) {
+    private void setNumberInMap(Double val) {
         double binWidth = 0.2;
         double scaledBinWidth = 10 * binWidth;
         double scaledValue = 10 *  val;
