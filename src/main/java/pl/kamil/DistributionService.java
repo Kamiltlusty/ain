@@ -1,5 +1,8 @@
 package pl.kamil;
 
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
@@ -32,5 +35,46 @@ public class DistributionService {
         List<Double> doubles1 = gaussianGenerator.generateTXT(N2);
         List<Double> doubles2 = gaussianGenerator.generateTXT(N3);
         txtExport.save(doubles, doubles1, doubles2, "GAUSSIAN-DISTRIBUTION");
+    }
+
+    public double randomNumber (double min, double max) {
+        double r = Math.random() * (max - min) + min;
+        return r;
+    }
+
+    public void monteCarlo(double R, int n, String file) {
+        int n_inside = 0;
+        double R2 = R * R;
+        double x;
+        double y;
+        double approximate_S;
+        double S;
+
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(file, true))) {
+            for(int i = 0; i < n; ++i) {
+                x = randomNumber((-1) * R, R);
+                y = randomNumber((-1) * R, R);
+                if(x * x + y * y <= R2) {
+                    ++n_inside;
+                }
+                writer.write(x + " ");
+                writer.write(y + " ");
+                writer.newLine();
+            }
+
+            approximate_S = 4.0 * R2 * n_inside / (double)n;
+            S = Math.PI * R * R;
+
+            System.out.println("Pole " + S);
+            System.out.println("Przyblizone pole " + approximate_S);
+
+            writer.write(R + " ");
+            writer.write(S + " ");
+            writer.write(approximate_S + " ");
+            writer.write(n + " ");
+            writer.newLine();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
