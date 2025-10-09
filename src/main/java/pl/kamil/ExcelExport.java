@@ -7,6 +7,7 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.List;
 import java.util.Map;
 
 public class ExcelExport implements DataExport {
@@ -42,5 +43,10 @@ public class ExcelExport implements DataExport {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public void save(List<Double> data, List<Double> data1, List<Double> data2, String fileName) {
+
     }
 }

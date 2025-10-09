@@ -1,5 +1,7 @@
 package pl.kamil;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -10,6 +12,19 @@ public class UniformGenerator implements DataGenerator {
     public UniformGenerator(RandomNumbers rn) {
         this.rn = rn;
         this.data = new TreeMap<>();
+    }
+
+    @Override
+    public List<Double> generateTXT(int N) {
+        if (N <= 0) {
+            throw new IllegalArgumentException("N must be greater than 0");
+        }
+
+        List<Double> data = new ArrayList<>();
+        for (int i = 0; i < N; i++) {
+            data.add(rn.nextDouble( 1));
+        }
+        return data;
     }
 
     @Override

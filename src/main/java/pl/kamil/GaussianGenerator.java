@@ -1,9 +1,6 @@
 package pl.kamil;
 
-import java.util.Comparator;
-import java.util.Map;
-import java.util.Random;
-import java.util.TreeMap;
+import java.util.*;
 
 public class GaussianGenerator implements DataGenerator {
     private final Map<String, Integer> data;
@@ -27,6 +24,11 @@ public class GaussianGenerator implements DataGenerator {
             setNumberInMap(val);
         }
         return data;
+    }
+
+    @Override
+    public List<Double> generateTXT(int N) {
+        return List.of();
     }
 
     private void setNumberInMap(Double val) {
