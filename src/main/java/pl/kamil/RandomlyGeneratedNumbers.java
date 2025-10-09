@@ -9,4 +9,9 @@ public class RandomlyGeneratedNumbers implements RandomNumbers {
     public double nextDouble(double upperBoundExclusive) {
         return rg.nextDouble(upperBoundExclusive);
     }
+
+    @Override
+    public double nextGaussian() {
+        return rg.nextGaussian();
+    }
 }

@@ -4,9 +4,10 @@ import java.util.*;
 
 public class GaussianGenerator implements DataGenerator {
     private final Map<String, Integer> data;
-    private final Random rd = new Random();
+    private final RandomNumbers rn;
 
-    public GaussianGenerator() {
+    public GaussianGenerator(RandomNumbers rn) {
+        this.rn = rn;
         // -0,2:0,4 => -0.2
         this.data = new TreeMap<>(Comparator.comparing(
                 key -> Double.parseDouble(
@@ -20,7 +21,7 @@ public class GaussianGenerator implements DataGenerator {
         if (N <= 0) {throw new IllegalArgumentException("N must be greater than 0");}
 
         for (int i = 0; i < N; i++) {
-            Double val = rd.nextGaussian();
+            Double val = rn.nextGaussian();
             setNumberInMap(val);
         }
         return data;
@@ -28,7 +29,15 @@ public class GaussianGenerator implements DataGenerator {
 
     @Override
     public List<Double> generateTXT(int N) {
-        return List.of();
+        if (N <= 0) {
+            throw new IllegalArgumentException("N must be greater than 0");
+        }
+
+        List<Double> data = new ArrayList<>();
+        for (int i = 0; i < N; i++) {
+            data.add(rn.nextGaussian());
+        }
+        return data;
     }
 
     private void setNumberInMap(Double val) {
