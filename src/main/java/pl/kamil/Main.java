@@ -1,5 +1,7 @@
 package pl.kamil;
 
+import java.util.ArrayList;
+
 public class Main {
     public static void task1(){
         var rn = new RandomlyGeneratedNumbers();
@@ -20,10 +22,17 @@ public class Main {
     }
 
     public static void task2(){
-        var ls = new LocalSearch();
         int[] n = {2, 5, 10};
-        for(int nCurrent : n) {
-            ls.startLocalSearch(nCurrent);
+        ArrayList<String> fileNames = new ArrayList<>();
+        fileNames.add("data_2.txt");
+        fileNames.add("data_5.txt");
+        fileNames.add("data_10.txt");
+
+        ArrayList<LocalSearch> ls = new ArrayList<>();
+        for(int i = 0; i < n.length; i++) {
+            ls.add(new LocalSearch(n[i]));
+            ls.getLast().repeatLocalSearch(100);
+            ls.getLast().save(fileNames.get(i));
         }
     }
 
