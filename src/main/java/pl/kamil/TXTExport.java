@@ -12,6 +12,20 @@ public class TXTExport implements DataExport {
     }
 
     @Override
+    public void save(List<Double> data, String fileName) {
+        try (var writer = new BufferedWriter(new FileWriter(fileName + ".txt"))) {
+            for (int i = 0; i < data.size(); i++) {
+                String formatted = String.format(Locale.US, "%s",
+                        String.format("%.10f", data.get(i)));
+                writer.write(formatted);
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
     public void save(List<Double> data1, List<Double> data2, List<Double> data3, String fileName) {
         try (var writer = new BufferedWriter(new FileWriter(fileName + ".txt"))) {
             for (int i = 0; i < data1.size(); i++) {

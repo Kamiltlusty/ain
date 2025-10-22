@@ -1,5 +1,8 @@
 package pl.kamil;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class Main {
     public static void main(String[] args) {
         var rn = new RandomlyGeneratedNumbers();
@@ -8,17 +11,16 @@ public class Main {
                 new UniformGenerator(rn),
                 new ExcelExport(),
                 new TXTExport());
-
         /*uds.createHistogramUniform(1_000_000, 100_000, 1000);
         uds.createHistogramGaussian(1_000_000, 100_000, 1000);*/
+//        double R = 100.0;
+//        uds.monteCarlo(R, 1000, "dane_1000.txt");
 
-        double R = 100.0;
-        uds.monteCarlo(R, 1000, "dane_1000.txt");
-
-        uds.monteCarlo(R, 10000, "dane_10000.txt");
-
-        uds.monteCarlo(R, 100000, "dane_100000.txt");
-
-        uds.monteCarlo(R, 500000, "dane_500000.txt");
+        var dim = List.of(2, 5, 10);
+        var execNum = 100;
+        var dp = new DataProcessor();
+        var de = new TXTExport();
+        var lss = new LocalSearchService(dim, execNum, dp, de);
+        lss.start();
     }
 }

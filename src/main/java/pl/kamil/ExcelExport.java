@@ -46,6 +46,11 @@ public class ExcelExport implements DataExport {
     }
 
     @Override
+    public void save(List<Double> data1, String fileName) {
+
+    }
+
+    @Override
     public void save(List<Double> data, List<Double> data1, List<Double> data2, String fileName) {
 
     }
