@@ -1,5 +1,7 @@
 package pl.kamil;
 
+import org.apache.poi.hssf.record.chart.DatRecord;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,9 +20,19 @@ public class Main {
 
         var dim = List.of(2, 5, 10);
         var execNum = 100;
-        var dp = new DataProcessor();
-        var de = new TXTExport();
-        var lss = new LocalSearchService(dim, execNum, dp, de);
-        lss.start();
+        //var dp = new DataProcessor();
+        //var de = new TXTExport();
+        //var lss = new LocalSearchService(dim, execNum, dp, de);
+        //lss.start();
+
+        List<LocalSearchService> lssList = new ArrayList<>();
+        List<DataProcessor> dataProcessorList = new ArrayList<>();
+        List<TXTExport> txtList = new ArrayList<>();
+        for (int i = 1; i <= 4; i++) {
+            dataProcessorList.add(new DataProcessor());
+            txtList.add(new TXTExport());
+            lssList.add(new LocalSearchService(dim, execNum, dataProcessorList.getLast(), txtList.getLast()));
+            lssList.getLast().start(i);
+        }
     }
 }

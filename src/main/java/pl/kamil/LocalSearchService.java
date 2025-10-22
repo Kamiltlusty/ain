@@ -22,7 +22,7 @@ public class LocalSearchService {
         this.txtExp = txtExp;
     }
 
-    public void start() {
+    public void start(int algorithm) {
         for (int i = 0; i < execNum; i++) {
             // zaczynam od dim 2
             Integer dimSize = dim.get(2);
@@ -32,13 +32,13 @@ public class LocalSearchService {
                     .map(Utils::toDomain).toList());
             double eval = evalFunc(p);
             result.add(eval);
-            localFirstSearch(p, eval);
+            localFirstSearch(p, eval, algorithm);
             fxResults.put(i, result);
             result = new ArrayList<>();
         }
 
         List<Double> average = dataProcessor.average100InvokesTo1(fxResults);
-        txtExp.save(average, "LOCAL_SEARCH");
+        txtExp.save(average, "LOCAL_SEARCH_"+algorithm);
     }
 
     public double evalFunc(Point p) {
@@ -47,7 +47,41 @@ public class LocalSearchService {
                 .reduce(0.0, Double::sum);
     }
 
-    public void localFirstSearch(Point p, double eval) {
+    //Rastrigin
+    public double evalFunc2(Point p) {
+        int n = p.getCoords().size();
+        return 10 * n + p.getCoords().stream()
+                .map(v -> v*v - 10 * Math.cos(2 * Math.PI * v))
+                .reduce(0.0, Double::sum);
+    }
+
+    //Rosenbrock
+    public double evalFunc3(Point p) {
+        int n = p.getCoords().size();
+        double sum1 = 0.0;
+        double sum2 = 0.0;
+        for (double v : p.getCoords()) {
+            sum1 += v * v;
+            sum2 += Math.cos(2 * Math.PI * v);
+        }
+        return -20.0 * Math.exp(-0.2 * Math.sqrt(sum1 / n))
+                - Math.exp(sum2 / n) + 20 + Math.E;
+    }
+
+    //Ackley
+    public double evalFunc4(Point p) {
+        double sum = 0.0;
+        double prod = 1.0;
+        List<Double> coords = p.getCoords();
+        for (int i = 0; i < coords.size(); i++) {
+            double xi = coords.get(i);
+            sum += xi * xi / 4000.0;
+            prod *= Math.cos(xi / Math.sqrt(i + 1));
+        }
+        return sum - prod + 1;
+    }
+
+    public void localFirstSearch(Point p, double eval, int algorithm) {
         double newEval;
         Point newPoint;
         int counter = 0;
@@ -61,7 +95,22 @@ public class LocalSearchService {
                         .map(Utils::toDomain)
                         .toList());
                 // obliczenie evaluacji dla x'
-                newEval = evalFunc(newPoint);
+                switch (algorithm) {
+                    case 1:
+                        newEval = evalFunc(newPoint);
+                        break;
+                    case 2:
+                        newEval = evalFunc2(newPoint);
+                        break;
+                    case 3:
+                        newEval = evalFunc3(newPoint);
+                        break;
+                    case 4:
+                        newEval = evalFunc4(newPoint);
+                        break;
+                    default:
+                        newEval = evalFunc(newPoint);
+                }
                 if (eval <= newEval) {
                     result.add(eval);
                 } else {
