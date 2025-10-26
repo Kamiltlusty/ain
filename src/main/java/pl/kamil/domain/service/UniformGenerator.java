@@ -1,7 +1,4 @@
-package pl.kamil.infrastructure.adapters;
-
-import pl.kamil.domain.ports.RandomNumbers;
-import pl.kamil.domain.ports.DataGenerator;
+package pl.kamil.domain.service;
 
 import java.util.ArrayList;
 import java.util.List;

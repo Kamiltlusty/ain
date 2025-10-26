@@ -1,18 +1,24 @@
 package pl.kamil.domain.model;
 
+import pl.kamil.domain.service.RepresentationConversionService;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.DoubleStream;
 
 public class Point {
     private List<Double> coords;
     private List<UInt16> coords16;
+    private final RepresentationConversionService rcs;
 
-    public Point(List<Double> coords) {
+    public Point(List<Double> coords, RepresentationConversionService rcs) {
         this.coords = coords;
+        this.rcs = rcs;
     }
 
-    public Point(Integer dimSize) {
+    public Point(Integer dimSize, RepresentationConversionService rcs) {
         this.coords = fillCords(dimSize);
+        this.rcs = rcs;
     }
 
     public List<Double> fillCords(Integer dimSize) {
@@ -32,11 +38,30 @@ public class Point {
                 .map(UInt16::copy)
                 .toList();
 
-        Point copy = new Point(newCoords);
+        Point copy = new Point(newCoords, rcs);
         copy.setCoords16(newCoords16);
 
         return copy;
     }
+
+    public void fromUInt16toDomain() {
+        setCoords(getCoords16().stream()
+                .map(rcs::toDomain)
+                .toList());
+    }
+
+    public void fromAnyToDomain() {
+        setCoords(getCoords().stream()
+                .map(rcs::toDomain).toList());
+    }
+
+    public void toUInt16() {
+        setCoords16(new ArrayList<>(getCoords().stream()
+                .map(rcs::toUInt16)
+                .toList()));
+    }
+
+
 
     public List<Double> getCoords() {
         return coords;

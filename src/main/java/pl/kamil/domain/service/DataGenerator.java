@@ -1,4 +1,4 @@
-package pl.kamil.domain.ports;
+package pl.kamil.domain.service;
 
 import java.util.List;
 import java.util.Map;

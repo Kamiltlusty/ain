@@ -6,8 +6,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import pl.kamil.domain.ports.RandomNumbers;
-import pl.kamil.infrastructure.adapters.UniformGenerator;
+import pl.kamil.domain.service.RandomNumbers;
+import pl.kamil.domain.service.UniformGenerator;
 
 import java.util.Map;
 

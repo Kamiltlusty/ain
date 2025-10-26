@@ -1,8 +1,8 @@
 package pl.kamil.application;
 
-import pl.kamil.domain.ports.DataGenerator;
-import pl.kamil.infrastructure.adapters.GaussianGenerator;
-import pl.kamil.infrastructure.adapters.UniformGenerator;
+import pl.kamil.domain.service.DataGenerator;
+import pl.kamil.domain.service.GaussianGenerator;
+import pl.kamil.domain.service.UniformGenerator;
 import pl.kamil.infrastructure.io.DataExport;
 import pl.kamil.infrastructure.io.ExcelExport;
 import pl.kamil.infrastructure.io.TXTExport;
