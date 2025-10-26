@@ -16,8 +16,7 @@ import pl.kamil.infrastructure.services.DataProcessor;
 import java.util.List;
 
 public class Main {
-    public static void main(String[] args) {
-        var rn = new RandomlyGeneratedNumbers();
+    public static void lab1(RandomlyGeneratedNumbers rn) {
         var uds = new DistributionService(
                 new GaussianGenerator(rn),
                 new UniformGenerator(rn),
@@ -27,7 +26,9 @@ public class Main {
         uds.createHistogramGaussian(1_000_000, 100_000, 1000);*/
 //        double R = 100.0;
 //        uds.monteCarlo(R, 1000, "dane_1000.txt");
+    }
 
+    public static void lab2(RandomlyGeneratedNumbers rn) {
         var dim = List.of(2, 5, 10);
         var execNum = 100;
         var nbhd = new NbhdFunc(rn);
@@ -51,5 +52,11 @@ public class Main {
 //            lssList.add(new LocalSearchService(dim, execNum, dataProcessorList.getLast(), txtList.getLast(), rcs));
 //            lssList.getLast().start(i);
 //        }
+    }
+
+
+    public static void main(String[] args) {
+        var rn = new RandomlyGeneratedNumbers();
+        lab2(rn);
     }
 }
