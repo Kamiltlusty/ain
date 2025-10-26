@@ -1,4 +1,6 @@
-package pl.kamil;
+package pl.kamil.domain.service;
+
+import pl.kamil.domain.model.UInt16;
 
 public class Utils {
     private final static double DOMAIN_X_START = -10.0;

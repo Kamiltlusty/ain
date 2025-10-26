@@ -1,10 +1,16 @@
-package pl.kamil;
+package pl.kamil.application;
+
+import pl.kamil.domain.ports.DataGenerator;
+import pl.kamil.infrastructure.adapters.GaussianGenerator;
+import pl.kamil.infrastructure.adapters.UniformGenerator;
+import pl.kamil.infrastructure.io.DataExport;
+import pl.kamil.infrastructure.io.ExcelExport;
+import pl.kamil.infrastructure.io.TXTExport;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.List;
-import java.util.Map;
 
 public class DistributionService {
     private final DataGenerator gaussianGenerator;

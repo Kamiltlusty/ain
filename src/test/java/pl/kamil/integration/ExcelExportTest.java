@@ -2,7 +2,7 @@ package pl.kamil.integration;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import pl.kamil.ExcelExport;
+import pl.kamil.infrastructure.io.ExcelExport;
 
 import java.util.List;
 

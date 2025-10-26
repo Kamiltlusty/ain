@@ -1,4 +1,4 @@
-package pl.kamil;
+package pl.kamil.domain.ports;
 
 public interface RandomNumbers {
     double nextDouble(double upperBoundExclusive);

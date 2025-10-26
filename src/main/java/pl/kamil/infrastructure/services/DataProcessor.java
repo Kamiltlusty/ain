@@ -1,4 +1,4 @@
-package pl.kamil;
+package pl.kamil.infrastructure.services;
 
 import java.util.ArrayList;
 import java.util.List;

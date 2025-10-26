@@ -1,4 +1,6 @@
-package pl.kamil;
+package pl.kamil.infrastructure.adapters;
+
+import pl.kamil.domain.ports.RandomNumbers;
 
 import java.util.random.RandomGenerator;
 

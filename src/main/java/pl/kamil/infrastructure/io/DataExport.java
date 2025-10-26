@@ -1,4 +1,4 @@
-package pl.kamil;
+package pl.kamil.infrastructure.io;
 
 import java.util.List;
 import java.util.Map;

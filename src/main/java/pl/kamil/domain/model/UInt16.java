@@ -1,4 +1,4 @@
-package pl.kamil;
+package pl.kamil.domain.model;
 
 public class UInt16 {
     private Integer val;

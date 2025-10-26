@@ -1,4 +1,10 @@
-package pl.kamil;
+package pl.kamil.application;
+
+import pl.kamil.infrastructure.services.DataProcessor;
+import pl.kamil.domain.model.UInt16;
+import pl.kamil.domain.service.Utils;
+import pl.kamil.domain.model.Point;
+import pl.kamil.infrastructure.io.DataExport;
 
 import java.util.*;
 

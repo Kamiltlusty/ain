@@ -1,4 +1,4 @@
-package pl.kamil;
+package pl.kamil.domain.model;
 
 import java.util.List;
 import java.util.stream.DoubleStream;
