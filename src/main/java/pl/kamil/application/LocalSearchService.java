@@ -19,21 +19,15 @@ public class LocalSearchService {
     private final LocalSearch ls;
     private final DataProcessor dataProcessor;
 
-    private final List<Integer> dim;
-    private final int execNum;
     private List<Double> result = new ArrayList<>();
     private final Map<Integer, List<Double>> fxResults =  new HashMap<>();
 
-    public LocalSearchService(List<Integer> dim,
-                              int execNum,
-                              DataProcessor dataProcessor,
+    public LocalSearchService(DataProcessor dataProcessor,
                               DataExport txtExp,
                               RepresentationConversionService rcs,
                               LSEvalFunc ef,
                               LocalSearch ls
     ) {
-        this.dim = dim;
-        this.execNum = execNum;
         this.dataProcessor = dataProcessor;
         this.txtExp = txtExp;
         this.rcs = rcs;
@@ -41,11 +35,13 @@ public class LocalSearchService {
         this.ls = ls;
     }
 
-    public void executeAlgorithm() {
+    public void executeAlgorithm(List<Integer> dim, int execNum, double rightDomainCorner) {
         for (int i = 0; i < execNum; i++) {
             // zaczynam od dim 2
             Integer dimSize = dim.get(2);
-            Point p = new Point(dimSize, rcs);
+            Point p = new Point(rcs);
+            // wypelnienie punktu wartosciami prawego rogu dziedziny
+            p.fillCoords(dimSize, rightDomainCorner);
             // przeskalowanie do zakresu [-10.0 - 10.0] dla spojnosci
             p.fromAnyToDomain();
 

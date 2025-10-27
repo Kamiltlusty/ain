@@ -16,14 +16,14 @@ public class Point {
         this.rcs = rcs;
     }
 
-    public Point(Integer dimSize, RepresentationConversionService rcs) {
-        this.coords = fillCords(dimSize);
+    public Point(RepresentationConversionService rcs) {
+//        this.coords = fillCords(dimSize, rightDomainCorner);
         this.rcs = rcs;
     }
 
-    public List<Double> fillCords(Integer dimSize) {
-        return DoubleStream
-                .generate(() -> 10.0)
+    public void fillCoords(Integer dimSize, double rightDomainCorner) {
+        this.coords = DoubleStream
+                .generate(() -> rightDomainCorner)
                 .limit(dimSize)
                 .boxed()
                 .toList();

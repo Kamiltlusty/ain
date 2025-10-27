@@ -2,9 +2,11 @@ package pl.kamil;
 
 import pl.kamil.application.DistributionService;
 import pl.kamil.application.LocalSearchService;
+import pl.kamil.application.SimulatedAnnealingService;
 import pl.kamil.domain.algorithm.ls.LocalSearch;
 import pl.kamil.domain.algorithm.ls.NbhdFunc;
 import pl.kamil.domain.algorithm.ls.eval.func.Spherical;
+import pl.kamil.domain.algorithm.sa.eval.func.SimulatedAnnealing;
 import pl.kamil.domain.service.RepresentationConversionService;
 import pl.kamil.domain.service.GaussianGenerator;
 import pl.kamil.domain.service.RandomlyGeneratedNumbers;
@@ -33,15 +35,14 @@ public class Main {
         var execNum = 100;
         var nbhd = new NbhdFunc(rn);
         var ef = new Spherical();
-        var lss = new LocalSearchService(dim,
-                execNum,
+        var lss = new LocalSearchService(
                 new DataProcessor(),
                 new TXTExport(),
                 new RepresentationConversionService(),
                 ef,
                 new LocalSearch(nbhd, ef)
         );
-        lss.executeAlgorithm();
+        lss.executeAlgorithm(dim, execNum, 10);
 
 //        List<LocalSearchService> lssList = new ArrayList<>();
 //        List<DataProcessor> dataProcessorList = new ArrayList<>();
@@ -52,6 +53,14 @@ public class Main {
 //            lssList.add(new LocalSearchService(dim, execNum, dataProcessorList.getLast(), txtList.getLast(), rcs));
 //            lssList.getLast().start(i);
 //        }
+    }
+
+    public static void lab3(RandomlyGeneratedNumbers rn) {
+        var execNum = 100;
+        var dim = 10;
+
+        var sa = new SimulatedAnnealingService(new RepresentationConversionService());
+        sa.executeAlgorithm(dim, execNum, 3);
     }
 
 
