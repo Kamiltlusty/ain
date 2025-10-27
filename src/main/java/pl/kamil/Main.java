@@ -38,7 +38,7 @@ public class Main {
         var lss = new LocalSearchService(
                 new DataProcessor(),
                 new TXTExport(),
-                new RepresentationConversionService(),
+                new RepresentationConversionService(-10.0, 10.0),
                 ef,
                 new LocalSearch(nbhd, ef)
         );
@@ -59,7 +59,7 @@ public class Main {
         var execNum = 100;
         var dim = 10;
 
-        var sa = new SimulatedAnnealingService(new RepresentationConversionService());
+        var sa = new SimulatedAnnealingService(new RepresentationConversionService(-3, 3));
         sa.executeAlgorithm(dim, execNum, 3);
     }
 

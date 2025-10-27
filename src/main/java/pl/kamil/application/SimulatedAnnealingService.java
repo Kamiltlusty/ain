@@ -3,9 +3,6 @@ package pl.kamil.application;
 import pl.kamil.domain.model.Point;
 import pl.kamil.domain.service.RepresentationConversionService;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public class SimulatedAnnealingService {
     private final RepresentationConversionService rcs;
 
