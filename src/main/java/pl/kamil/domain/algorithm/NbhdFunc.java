@@ -1,14 +1,14 @@
-package pl.kamil.domain.algorithm.ls;
+package pl.kamil.domain.algorithm;
 
 import pl.kamil.domain.model.Point;
 import pl.kamil.domain.model.UInt16;
 import pl.kamil.domain.service.RandomlyGeneratedNumbers;
 
 public class NbhdFunc {
-    private final RandomlyGeneratedNumbers rgn;
+    private final RandomlyGeneratedNumbers rn;
 
-    public NbhdFunc(RandomlyGeneratedNumbers rgn) {
-        this.rgn = rgn;
+    public NbhdFunc(RandomlyGeneratedNumbers rn) {
+        this.rn = rn;
     }
 
     // nbhd -> neighborhood
@@ -20,7 +20,7 @@ public class NbhdFunc {
 
         // obliczenie losowego wymiaru i pobranie wymiaru z punktu
         int dimCount = neighbor.getCoords16().size();
-        int randomDim = rgn.nextInt(dimCount);
+        int randomDim = rn.nextInt(dimCount);
         UInt16 originalUInt16 = neighbor.getCoords16().get(randomDim);
 
         // perturbacja
@@ -34,7 +34,7 @@ public class NbhdFunc {
     public UInt16 perturb(UInt16 uInt16, int m) {
         int value = uInt16.getVal();
         for (int j = 0; j < 16; j++) {
-            if (Math.random() < ((double) m / 16)) {
+            if (rn.nextDouble(1) < ((double) m / 16)) {
                 value ^= (1 << j); // XOR, odwraca bit j
             }
         }

@@ -1,5 +1,6 @@
 package pl.kamil.domain.algorithm.ls;
 
+import pl.kamil.domain.algorithm.NbhdFunc;
 import pl.kamil.domain.algorithm.ls.eval.func.LSEvalFunc;
 import pl.kamil.domain.model.Point;
 
