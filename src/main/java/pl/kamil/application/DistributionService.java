@@ -15,13 +15,13 @@ import java.util.List;
 public class DistributionService {
     private final DataGenerator gaussianGenerator;
     private final DataGenerator uniformGenerator;
-    private final DataExport excelExport;
+//    private final DataExport excelExport;
     private final DataExport txtExport;
 
     public DistributionService(GaussianGenerator gg, UniformGenerator ug, ExcelExport ee, TXTExport txtExport) {
         this.gaussianGenerator = gg;
         this.uniformGenerator = ug;
-        this.excelExport = ee;
+//        this.excelExport = ee;
         this.txtExport = txtExport;
     }
 

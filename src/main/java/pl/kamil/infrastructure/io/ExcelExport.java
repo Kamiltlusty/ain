@@ -10,7 +10,7 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
-public class ExcelExport implements DataExport {
+public class ExcelExport  {
     public void save(Map<String, Integer> data, String fileName) {
         try (XSSFWorkbook workbook = new XSSFWorkbook();
              FileOutputStream out = new FileOutputStream(fileName + ".xlsx")) {
@@ -45,13 +45,13 @@ public class ExcelExport implements DataExport {
         }
     }
 
-    @Override
-    public void save(List<Double> data1, String fileName) {
-
-    }
-
-    @Override
-    public void save(List<Double> data, List<Double> data1, List<Double> data2, String fileName) {
-
-    }
+//    @Override
+//    public void save(List<Double> data1, String fileName) {
+//
+//    }
+//
+//    @Override
+//    public void save(List<Double> data, List<Double> data1, List<Double> data2, String fileName) {
+//
+//    }
 }

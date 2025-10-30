@@ -1,7 +1,6 @@
 package pl.kamil.domain.algorithm.sa;
 
 import pl.kamil.domain.algorithm.NbhdFunc;
-import pl.kamil.domain.algorithm.sa.calc.length.CalculateLength;
 import pl.kamil.domain.algorithm.sa.calc.control.CalculateControl;
 import pl.kamil.domain.algorithm.sa.eval.func.SAEvalFunc;
 import pl.kamil.domain.model.Point;
@@ -14,17 +13,15 @@ public class SimulatedAnnealing {
     private final SAEvalFunc ef;
     private final NbhdFunc nbhd;
     private final RandomlyGeneratedNumbers rn;
-    private final CalculateLength cl;
     private final CalculateControl cc;
 
     private final int EVAL_NUM = 10_000;
     private int m = 1;
 
-    public SimulatedAnnealing(SAEvalFunc ef, NbhdFunc nbhd, RandomlyGeneratedNumbers rn, CalculateLength cl, CalculateControl cc) {
+    public SimulatedAnnealing(SAEvalFunc ef, NbhdFunc nbhd, RandomlyGeneratedNumbers rn, CalculateControl cc) {
         this.ef = ef;
         this.nbhd = nbhd;
         this.rn = rn;
-        this.cl = cl;
         this.cc = cc;
     }
 
@@ -33,39 +30,40 @@ public class SimulatedAnnealing {
         Point newPoint;
         int counter = 0;
         double T1 = 100;
-        double TN = 0;
+        double TN = 0.01;
         double Tk = T1;
-        double Lk = 100;
         int N = 50;
+        int Lk = EVAL_NUM / N;
+        int k = 0;
         do {
-            int tries = 0;
-            for (int i = 0; i < Lk; i++) {
+            for (int i = 0; i < Lk && counter < EVAL_NUM - 1; i++) {
                 // obliczenie y
                 newPoint = nbhd.nbhdFunc(p, m);
                 // zamiana z bitow na zakres [-3 - 3] w nowym punkcie
                 newPoint.fromUInt16toDomain();
 //                // obliczenie evaluacji dla y
                 newEval = ef.evalFunc(newPoint);
+
+                // do serii zapisuje zawsze mniejsza wartosc, czyli lepsza ze starej i nowej
+                result.add(Math.min(eval, newEval));
                 if (newEval <= eval) {
-                    // dodajemy nowa ewaluacje bo jest lepsza
-                    result.add(newEval);
+                    // nowa ewaluacja jest lepsza dlatego przypisujemy ja do eval dla nastepnych przebiegow
                     p = newPoint;
                     eval = newEval;
                 } else {
                     double meter = eval - newEval;
-                    if (rn.nextDouble(1) <= Math.exp(meter / Tk)) {
-                        // dodajemy nowa ewaluacje pomimo ze jest gorsza
-                    } else {
-                        // dodajemy stara evaluacje
-                        result.add(eval);
+                    if (rn.nextDouble(1) < Math.exp(meter / Tk)) {
+                        // zapisujemy nowa ewaluacje pomimo ze jest gorsza ponieważ musi iśc w parze razem z nowym punktem
+                        eval = newEval;
+                        p = newPoint;
                     }
                 }
-                Lk = cc.calculateLength();
-                Tk = cl.calculateControl(T1, TN, N);
                 counter++;
-                if (counter >= EVAL_NUM - 1) break;
             }
-        }
-        while (true);
+            k++;
+            Tk = cc.calculateControl(T1, TN, N, k);
+            if (counter >= EVAL_NUM - 1) break;
+            if (Tk <= TN) break;
+        } while (true);
     }
 }

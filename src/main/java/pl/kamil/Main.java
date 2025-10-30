@@ -7,9 +7,10 @@ import pl.kamil.domain.algorithm.ls.LocalSearch;
 import pl.kamil.domain.algorithm.NbhdFunc;
 import pl.kamil.domain.algorithm.ls.eval.func.Spherical;
 import pl.kamil.domain.algorithm.sa.SimulatedAnnealing;
+import pl.kamil.domain.algorithm.sa.calc.control.CosinusSchemeControl;
 import pl.kamil.domain.algorithm.sa.calc.control.LinearSchemeControl;
-import pl.kamil.domain.algorithm.sa.calc.length.LinearSchemeLength;
 import pl.kamil.domain.algorithm.sa.eval.func.TestFunc1;
+import pl.kamil.domain.algorithm.sa.eval.func.TestFunc2;
 import pl.kamil.domain.service.RepresentationConversionService;
 import pl.kamil.domain.service.GaussianGenerator;
 import pl.kamil.domain.service.RandomlyGeneratedNumbers;
@@ -62,24 +63,25 @@ public class Main {
         var execNum = 100;
         var dim = 10;
 
-        var ef = new TestFunc1();
+        var ef = new TestFunc2();
         var nbhd = new NbhdFunc(rn);
         var sa = new SimulatedAnnealingService(
-                new RepresentationConversionService(-3, 3),
+                new RepresentationConversionService(-32.768, 32.768),
                 ef,
                 new SimulatedAnnealing(ef,
                         nbhd,
                         rn,
-                        new LinearSchemeLength(),
-                        new LinearSchemeControl())
+                        new CosinusSchemeControl()),
+                new TXTExport(),
+                new DataProcessor()
         );
 
-        sa.executeAlgorithm(dim, execNum, 3);
+        sa.executeAlgorithm(dim, execNum, 32.768);
     }
 
 
     public static void main(String[] args) {
         var rn = new RandomlyGeneratedNumbers();
-        lab2(rn);
+        lab3(rn);
     }
 }

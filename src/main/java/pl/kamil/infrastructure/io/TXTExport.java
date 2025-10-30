@@ -7,8 +7,29 @@ import java.util.Map;
 
 public class TXTExport implements DataExport {
     @Override
-    public void save(Map<String, Integer> data, String fileName) {
+    public void save(Map<Integer, List<Double>> data, String fileName) {
+        try (var writer = new BufferedWriter(new FileWriter(fileName + ".txt"))) {
+            int maxSize = data.values().stream().mapToInt(List::size).max().orElse(0);
 
+            for (int i = 0; i < maxSize; i++) {
+                StringBuilder line = new StringBuilder();
+
+                for (Integer key : data.keySet()) {
+                    List<Double> list = data.get(key);
+                    if (i < list.size()) {
+                        line.append(String.format(Locale.US, "%.10f", list.get(i)));
+                    } else {
+                        line.append("");
+                    }
+                    line.append("\t");
+                }
+
+                writer.write(line.toString().trim());
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
