@@ -1,5 +1,6 @@
 package pl.kamil;
 
+import org.apache.commons.math3.analysis.function.Cosh;
 import pl.kamil.application.DistributionService;
 import pl.kamil.application.LocalSearchService;
 import pl.kamil.application.SimulatedAnnealingService;
@@ -7,8 +8,7 @@ import pl.kamil.domain.algorithm.ls.LocalSearch;
 import pl.kamil.domain.algorithm.NbhdFunc;
 import pl.kamil.domain.algorithm.ls.eval.func.Spherical;
 import pl.kamil.domain.algorithm.sa.SimulatedAnnealing;
-import pl.kamil.domain.algorithm.sa.calc.control.CosinusSchemeControl;
-import pl.kamil.domain.algorithm.sa.calc.control.LinearSchemeControl;
+import pl.kamil.domain.algorithm.sa.calc.control.*;
 import pl.kamil.domain.algorithm.sa.eval.func.TestFunc1;
 import pl.kamil.domain.algorithm.sa.eval.func.TestFunc2;
 import pl.kamil.domain.service.RepresentationConversionService;
@@ -63,20 +63,20 @@ public class Main {
         var execNum = 100;
         var dim = 10;
 
-        var ef = new TestFunc2();
+        var ef = new TestFunc1(); // Zmieniac przy zmianie funkcji testowej
         var nbhd = new NbhdFunc(rn);
         var sa = new SimulatedAnnealingService(
-                new RepresentationConversionService(-32.768, 32.768),
+                new RepresentationConversionService(-3, 3), // Zmieniac przy zmianie funkcji testowej
                 ef,
                 new SimulatedAnnealing(ef,
                         nbhd,
                         rn,
-                        new CosinusSchemeControl()),
+                        new Exp2SchemeControl()),
                 new TXTExport(),
                 new DataProcessor()
         );
 
-        sa.executeAlgorithm(dim, execNum, 32.768);
+        sa.executeAlgorithm(dim, execNum, 3); // Zmieniac przy zmianie funkcji testowej
     }
 
 
