@@ -11,6 +11,7 @@ import pl.kamil.domain.algorithm.sa.SimulatedAnnealing;
 import pl.kamil.domain.algorithm.sa.calc.control.*;
 import pl.kamil.domain.algorithm.sa.eval.func.TestFunc1;
 import pl.kamil.domain.algorithm.sa.eval.func.TestFunc2;
+import pl.kamil.domain.model.Point;
 import pl.kamil.domain.service.RepresentationConversionService;
 import pl.kamil.domain.service.GaussianGenerator;
 import pl.kamil.domain.service.RandomlyGeneratedNumbers;
@@ -39,14 +40,14 @@ public class Main {
         var execNum = 100;
         var nbhd = new NbhdFunc(rn);
         var ef = new Spherical();
+        var rcs = new RepresentationConversionService(-10.0, 10.0);
         var lss = new LocalSearchService(
                 new DataProcessor(),
                 new TXTExport(),
-                new RepresentationConversionService(-10.0, 10.0),
                 ef,
                 new LocalSearch(nbhd, ef)
         );
-        lss.executeAlgorithm(dim, execNum, 10);
+        lss.executeAlgorithm(dim, execNum, 10, new Point(rcs));
 
 //        List<LocalSearchService> lssList = new ArrayList<>();
 //        List<DataProcessor> dataProcessorList = new ArrayList<>();
