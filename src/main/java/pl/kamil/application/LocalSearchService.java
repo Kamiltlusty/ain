@@ -15,29 +15,27 @@ public class LocalSearchService {
     private final DataExport txtExp;
     private final LSEvalFunc ef;
     private final LocalSearch ls;
-    private final DataProcessor dataProcessor;
+    private final DataProcessor dp;
 
     private final Map<Integer, List<Double>> fxResults = new HashMap<>();
 
-    public LocalSearchService(DataProcessor dataProcessor,
+    public LocalSearchService(DataProcessor dp,
                               DataExport txtExp,
                               LSEvalFunc ef,
                               LocalSearch ls
     ) {
-        this.dataProcessor = dataProcessor;
+        this.dp = dp;
         this.txtExp = txtExp;
         this.ef = ef;
         this.ls = ls;
     }
 
-    public void executeAlgorithm(List<Integer> dim, int execNum, double rightDomainCorner, Point rightCornerPoint) {
+    public void executeAlgorithm(Integer dim, int execNum, double rightDomainCorner, Point rightCornerPoint) {
         for (int i = 0; i < execNum; i++) {
             List<Double> result = new ArrayList<>();
-            // zaczynam od dim 2
-            Integer dimSize = dim.get(2);
-
+            
             // wypelnienie punktu wartosciami prawego rogu dziedziny
-            rightCornerPoint.fillCoords(dimSize, rightDomainCorner);
+            rightCornerPoint.fillCoords(dim, rightDomainCorner);
             // przeskalowanie do zakresu [-10.0 - 10.0] dla spojnosci
             rightCornerPoint.fromAnyToDomain();
 
@@ -49,7 +47,7 @@ public class LocalSearchService {
 
         txtExp.save(fxResults, "LOCAL_SEARCH");
 
-        List<Double> average = dataProcessor.average100InvokesTo1(fxResults);
+        List<Double> average = dp.average100InvokesTo1(fxResults);
         txtExp.save(average, "LOCAL_SEARCH_AVERAGE");
     }
 }

@@ -36,7 +36,7 @@ public class Main {
     }
 
     public static void lab2(RandomlyGeneratedNumbers rn) {
-        var dim = List.of(2, 5, 10);
+        var dim = 2;
         var execNum = 100;
         var nbhd = new NbhdFunc(rn);
         var ef = new Spherical();
