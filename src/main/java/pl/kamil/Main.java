@@ -1,8 +1,9 @@
 package pl.kamil;
 
-import org.apache.commons.math3.analysis.function.Cosh;
 import pl.kamil.application.DistributionService;
-import pl.kamil.application.LocalSearchService;
+import pl.kamil.application.usecases.LocalSearchUseCase;
+import pl.kamil.domain.model.Point;
+import pl.kamil.domain.service.LocalSearchService;
 import pl.kamil.application.SimulatedAnnealingService;
 import pl.kamil.domain.algorithm.ls.LocalSearch;
 import pl.kamil.domain.algorithm.NbhdFunc;
@@ -10,17 +11,13 @@ import pl.kamil.domain.algorithm.ls.eval.func.Spherical;
 import pl.kamil.domain.algorithm.sa.SimulatedAnnealing;
 import pl.kamil.domain.algorithm.sa.calc.control.*;
 import pl.kamil.domain.algorithm.sa.eval.func.TestFunc1;
-import pl.kamil.domain.algorithm.sa.eval.func.TestFunc2;
-import pl.kamil.domain.model.Point;
 import pl.kamil.domain.service.RepresentationConversionService;
 import pl.kamil.domain.service.GaussianGenerator;
 import pl.kamil.domain.service.RandomlyGeneratedNumbers;
 import pl.kamil.domain.service.UniformGenerator;
-import pl.kamil.infrastructure.io.ExcelExport;
-import pl.kamil.infrastructure.io.TXTExport;
+import pl.kamil.infrastructure.adapters.ExcelExport;
+import pl.kamil.infrastructure.adapters.TXTExport;
 import pl.kamil.infrastructure.services.DataProcessor;
-
-import java.util.List;
 
 public class Main {
     public static void lab1(RandomlyGeneratedNumbers rn) {
@@ -40,14 +37,15 @@ public class Main {
         var execNum = 100;
         var nbhd = new NbhdFunc(rn);
         var ef = new Spherical();
+        DataProcessor dp = new DataProcessor();
         var rcs = new RepresentationConversionService(-10.0, 10.0);
         var lss = new LocalSearchService(
-                new DataProcessor(),
-                new TXTExport(),
                 ef,
                 new LocalSearch(nbhd, ef)
         );
-        lss.executeAlgorithm(dim, execNum, 10, new Point(rcs));
+        var lsuc = new LocalSearchUseCase(dp, new TXTExport(), lss);
+        lsuc.coordinateAlgorithmAndSave(dim, execNum, 10, new Point(rcs));
+
 
 //        List<LocalSearchService> lssList = new ArrayList<>();
 //        List<DataProcessor> dataProcessorList = new ArrayList<>();
@@ -83,6 +81,6 @@ public class Main {
 
     public static void main(String[] args) {
         var rn = new RandomlyGeneratedNumbers();
-        lab3(rn);
+        lab2(rn);
     }
 }

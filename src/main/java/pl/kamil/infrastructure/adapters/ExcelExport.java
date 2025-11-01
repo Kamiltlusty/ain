@@ -1,4 +1,4 @@
-package pl.kamil.infrastructure.io;
+package pl.kamil.infrastructure.adapters;
 
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.xssf.usermodel.XSSFRow;
@@ -7,7 +7,6 @@ import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 
 public class ExcelExport  {

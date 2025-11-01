@@ -1,4 +1,6 @@
-package pl.kamil.infrastructure.io;
+package pl.kamil.infrastructure.adapters;
+
+import pl.kamil.application.ports.DataExport;
 
 import java.io.*;
 import java.util.List;

@@ -3,9 +3,9 @@ package pl.kamil.application;
 import pl.kamil.domain.service.DataGenerator;
 import pl.kamil.domain.service.GaussianGenerator;
 import pl.kamil.domain.service.UniformGenerator;
-import pl.kamil.infrastructure.io.DataExport;
-import pl.kamil.infrastructure.io.ExcelExport;
-import pl.kamil.infrastructure.io.TXTExport;
+import pl.kamil.application.ports.DataExport;
+import pl.kamil.infrastructure.adapters.ExcelExport;
+import pl.kamil.infrastructure.adapters.TXTExport;
 
 import java.io.BufferedWriter;
 import java.io.FileWriter;

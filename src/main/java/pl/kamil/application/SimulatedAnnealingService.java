@@ -4,7 +4,7 @@ import pl.kamil.domain.algorithm.sa.SimulatedAnnealing;
 import pl.kamil.domain.algorithm.sa.eval.func.SAEvalFunc;
 import pl.kamil.domain.model.Point;
 import pl.kamil.domain.service.RepresentationConversionService;
-import pl.kamil.infrastructure.io.DataExport;
+import pl.kamil.application.ports.DataExport;
 import pl.kamil.infrastructure.services.DataProcessor;
 
 import java.util.*;

@@ -32,12 +32,4 @@ public class DataProcessor {
         }
         return avgResults;
     }
-
-    public List<Double> sampleEveryNthValue(List<Double> averageResults, int n) {
-        List<Double> sampledResults = new ArrayList<>();
-        for (int i = 0; i < averageResults.size(); i+=n) {
-            sampledResults.add(averageResults.get(i));
-        }
-        return sampledResults;
-    }
 }

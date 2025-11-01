@@ -1,4 +1,4 @@
-package pl.kamil.application;
+package pl.kamil.domain.service;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -10,11 +10,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import pl.kamil.domain.algorithm.ls.LocalSearch;
 import pl.kamil.domain.algorithm.ls.eval.func.LSEvalFunc;
 import pl.kamil.domain.model.Point;
-import pl.kamil.infrastructure.io.DataExport;
+import pl.kamil.application.ports.DataExport;
 import pl.kamil.infrastructure.services.DataProcessor;
 
 import java.util.List;
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.eq;
@@ -47,11 +46,10 @@ class LocalSearchServiceTest {
     @SuppressWarnings("unchecked")
     void shouldExecuteFullLocalSearchAlgorithm() {
         // given
-        when(dp.average100InvokesTo1(anyMap())).thenReturn(List.of(1.0));
         when(ef.evalFunc(eq(rightCornerPoint))).thenReturn(EVAL_VALUE);
         var lfsListCaptor = ArgumentCaptor.forClass(List.class);
-        var mapCaptor = ArgumentCaptor.forClass(Map.class);
-        var saveListCaptor = ArgumentCaptor.forClass(List.class);
+//        var mapCaptor = ArgumentCaptor.forClass(Map.class);
+//        var saveListCaptor = ArgumentCaptor.forClass(List.class);
         // when
         lss.executeAlgorithm(DIM,
                 EXEC_NUM,
@@ -63,8 +61,6 @@ class LocalSearchServiceTest {
         verify(ef, times(EXEC_NUM))
                 .evalFunc(eq(rightCornerPoint));
         verifyLocalSearch(lfsListCaptor);
-
-        verifySave(mapCaptor, saveListCaptor);
     }
 
     private void verifyPointCalls() {
@@ -84,18 +80,18 @@ class LocalSearchServiceTest {
         assertEquals(SINGLE_LIST_ADD_INVOKE, lfsListCaptor.getValue().size());
     }
 
-    @SuppressWarnings("unchecked")
-    private void verifySave(ArgumentCaptor<Map> mapCaptor, ArgumentCaptor<List> saveListCaptor) {
-        // sprawdza zapis 100 kolumn, wywołania uśrednienia oraz zapis uśrednionej 1 kolumny
-        verify(txtExp).save(mapCaptor.capture(),  anyString());
-
-        Map<Integer, List<Double>> resultMap = mapCaptor.getValue();
-        assertEquals(EXEC_NUM, mapCaptor.getValue().size());
-        assertEquals(EVAL_VALUE, resultMap.get(0).getFirst());
-
-        verify(dp).average100InvokesTo1(eq(resultMap));
-
-        verify(txtExp).save(saveListCaptor.capture(),  anyString());
-        assertEquals(1, saveListCaptor.getValue().size());
-    }
+//    @SuppressWarnings("unchecked")
+//    private void verifySave(ArgumentCaptor<Map> mapCaptor, ArgumentCaptor<List> saveListCaptor) {
+//        // sprawdza zapis 100 kolumn, wywołania uśrednienia oraz zapis uśrednionej 1 kolumny
+//        verify(txtExp).save(mapCaptor.capture(),  anyString());
+//
+//        Map<Integer, List<Double>> resultMap = mapCaptor.getValue();
+//        assertEquals(EXEC_NUM, mapCaptor.getValue().size());
+//        assertEquals(EVAL_VALUE, resultMap.get(0).getFirst());
+//
+//        verify(dp).average100InvokesTo1(eq(resultMap));
+//
+//        verify(txtExp).save(saveListCaptor.capture(),  anyString());
+//        assertEquals(1, saveListCaptor.getValue().size());
+//    }
 }
