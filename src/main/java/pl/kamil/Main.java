@@ -19,6 +19,9 @@ import pl.kamil.infrastructure.adapters.ExcelExport;
 import pl.kamil.infrastructure.adapters.TXTExport;
 import pl.kamil.infrastructure.services.DataProcessor;
 
+import java.io.IOException;
+import java.util.List;
+
 public class Main {
     public static void lab1(RandomlyGeneratedNumbers rn) {
         var uds = new DistributionService(
@@ -58,26 +61,34 @@ public class Main {
 //        }
     }
 
-    public static void lab3(RandomlyGeneratedNumbers rn) {
-        var execNum = 100;
-        var dim = 10;
+//    public static void lab3(RandomlyGeneratedNumbers rn) {
+//        var execNum = 100;
+//        var dim = 10;
+//
+//        var ef = new TestFunc1(); // Zmieniac przy zmianie funkcji testowej
+//        var nbhd = new NbhdFunc(rn);
+//        var sa = new SimulatedAnnealingService(
+//                new RepresentationConversionService(-3, 3), // Zmieniac przy zmianie funkcji testowej
+//                ef,
+//                new SimulatedAnnealing(ef,
+//                        nbhd,
+//                        rn,
+//                        new Exp2SchemeControl()),
+//                new TXTExport(),
+//                new DataProcessor()
+//        );
+//
+//        sa.executeAlgorithm(dim, execNum, 3); // Zmieniac przy zmianie funkcji testowej
+//    }
 
-        var ef = new TestFunc1(); // Zmieniac przy zmianie funkcji testowej
-        var nbhd = new NbhdFunc(rn);
-        var sa = new SimulatedAnnealingService(
-                new RepresentationConversionService(-3, 3), // Zmieniac przy zmianie funkcji testowej
-                ef,
-                new SimulatedAnnealing(ef,
-                        nbhd,
-                        rn,
-                        new Exp2SchemeControl()),
-                new TXTExport(),
-                new DataProcessor()
-        );
-
-        sa.executeAlgorithm(dim, execNum, 3); // Zmieniac przy zmianie funkcji testowej
+    public static void lab3() {
+        var simAnn = new SimulatedAnnealing();
+        try {
+            simAnn.startAnnealing();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
-
 
     public static void main(String[] args) {
         var rn = new RandomlyGeneratedNumbers();
