@@ -1,16 +1,13 @@
 package pl.kamil;
 
+import pl.kamil.domain.algorithm.sa.nat.SimAn;
 import pl.kamil.application.DistributionService;
 import pl.kamil.application.usecases.LocalSearchUseCase;
 import pl.kamil.domain.model.Point;
 import pl.kamil.domain.service.LocalSearchService;
-import pl.kamil.application.SimulatedAnnealingService;
 import pl.kamil.domain.algorithm.ls.LocalSearch;
 import pl.kamil.domain.algorithm.NbhdFunc;
 import pl.kamil.domain.algorithm.ls.eval.func.Spherical;
-import pl.kamil.domain.algorithm.sa.SimulatedAnnealing;
-import pl.kamil.domain.algorithm.sa.calc.control.*;
-import pl.kamil.domain.algorithm.sa.eval.func.TestFunc1;
 import pl.kamil.domain.service.RepresentationConversionService;
 import pl.kamil.domain.service.GaussianGenerator;
 import pl.kamil.domain.service.RandomlyGeneratedNumbers;
@@ -18,9 +15,6 @@ import pl.kamil.domain.service.UniformGenerator;
 import pl.kamil.infrastructure.adapters.ExcelExport;
 import pl.kamil.infrastructure.adapters.TXTExport;
 import pl.kamil.infrastructure.services.DataProcessor;
-
-import java.io.IOException;
-import java.util.List;
 
 public class Main {
     public static void lab1(RandomlyGeneratedNumbers rn) {
@@ -82,16 +76,21 @@ public class Main {
 //    }
 
     public static void lab3() {
-        var simAnn = new SimulatedAnnealing();
+        /*var simAnn = new SimulatedAnnealing();
         try {
             simAnn.startAnnealing();
         } catch (IOException e) {
             e.printStackTrace();
-        }
+        }*/
     }
 
     public static void main(String[] args) {
         var rn = new RandomlyGeneratedNumbers();
         lab2(rn);
+        try {
+            SimAn.startAnnealing();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }
