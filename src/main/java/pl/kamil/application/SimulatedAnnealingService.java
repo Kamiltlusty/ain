@@ -1,7 +1,7 @@
 package pl.kamil.application;
 
 import pl.kamil.domain.algorithm.sa.SimulatedAnnealing;
-import pl.kamil.domain.algorithm.sa.eval.func.SAEvalFunc;
+import pl.kamil.domain.algorithm.sa.eval.func.EvalFunc;
 import pl.kamil.domain.model.Point;
 import pl.kamil.domain.service.RepresentationConversionService;
 import pl.kamil.application.ports.DataExport;
@@ -11,14 +11,14 @@ import java.util.*;
 
 public class SimulatedAnnealingService {
     private final RepresentationConversionService rcs;
-    private final SAEvalFunc ef;
+    private final EvalFunc ef;
     private final SimulatedAnnealing sa;
     private final DataExport txtExp;
     private final DataProcessor dataProcessor;
 
-    private final Map<Integer, List<Double>> fxResults =  new TreeMap<>();
+    private final Map<Integer, List<Double>> fxResults = new TreeMap<>();
 
-    public SimulatedAnnealingService(RepresentationConversionService rcs, SAEvalFunc ef, SimulatedAnnealing sa, DataExport txtExp, DataProcessor dataProcessor) {
+    public SimulatedAnnealingService(RepresentationConversionService rcs, EvalFunc ef, SimulatedAnnealing sa, DataExport txtExp, DataProcessor dataProcessor) {
         this.rcs = rcs;
         this.ef = ef;
         this.sa = sa;
@@ -26,13 +26,14 @@ public class SimulatedAnnealingService {
         this.dataProcessor = dataProcessor;
     }
 
-    public void executeAlgorithm(int dim, int execNum, double rightDomainCorner) {
+    public void executeAlgorithm(int dim, int execNum, double rightDomainCorner, boolean isBinary) {
         for (int i = 0; i < execNum; i++) {
             List<Double> result = new ArrayList<>();
             // dim 10
             Point p = new Point(rcs);
             // wypelnienie punktu wartosciami prawego rogu dziedziny
             p.fillCoords(dim, rightDomainCorner);
+
             // przeskalowanie do zakresu [-3.0 - 3.0] dla spojnosci
             p.fromAnyToDomain();
 

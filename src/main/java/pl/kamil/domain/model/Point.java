@@ -1,5 +1,6 @@
 package pl.kamil.domain.model;
 
+import pl.kamil.domain.service.RandomlyGeneratedNumbers;
 import pl.kamil.domain.service.RepresentationConversionService;
 
 import java.util.ArrayList;
@@ -24,6 +25,16 @@ public class Point {
     public void fillCoords(Integer dimSize, double rightDomainCorner) {
         this.coords = DoubleStream
                 .generate(() -> rightDomainCorner)
+                .limit(dimSize)
+                .boxed()
+                .toList();
+    }
+
+    // do algorytmów genetycznych
+    public void fillCoordsWithRandValsFromDomain(Integer dimSize, double xMin, double xMax) {
+        var rng = new RandomlyGeneratedNumbers();
+        this.coords = DoubleStream
+                .generate(() -> rng.nextDouble(xMin, xMax))
                 .limit(dimSize)
                 .boxed()
                 .toList();
@@ -82,7 +93,7 @@ public class Point {
     @Override
     public String toString() {
         return "Point{" +
-                "coords=" + coords16 +
+                "coords=" + coords +
                 '}';
     }
 }

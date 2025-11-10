@@ -2,7 +2,7 @@ package pl.kamil.domain.algorithm.sa.eval.func;
 
 import pl.kamil.domain.model.Point;
 
-public class TestFunc1 implements SAEvalFunc{
+public class TestFunc1 implements EvalFunc {
     @Override
     public double evalFunc(Point p) {
         double fx = 0.0;

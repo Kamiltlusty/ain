@@ -2,7 +2,7 @@ package pl.kamil.domain.algorithm.sa.eval.func;
 
 import pl.kamil.domain.model.Point;
 
-public class TestFunc2 implements SAEvalFunc {
+public class TestFunc2 implements EvalFunc {
     private static final double a = 20;
     private static final double b = 0.2;
     private static final double c = 2*Math.PI;

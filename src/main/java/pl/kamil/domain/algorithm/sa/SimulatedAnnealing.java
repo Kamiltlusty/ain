@@ -2,7 +2,7 @@ package pl.kamil.domain.algorithm.sa;
 
 import pl.kamil.domain.algorithm.NbhdFunc;
 import pl.kamil.domain.algorithm.sa.calc.control.CalculateControl;
-import pl.kamil.domain.algorithm.sa.eval.func.SAEvalFunc;
+import pl.kamil.domain.algorithm.sa.eval.func.EvalFunc;
 import pl.kamil.domain.model.Point;
 import pl.kamil.domain.service.RandomlyGeneratedNumbers;
 
@@ -10,7 +10,7 @@ import java.util.List;
 
 public class SimulatedAnnealing {
     //    private final NbhdFunc nbhd;
-    private final SAEvalFunc ef;
+    private final EvalFunc ef;
     private final NbhdFunc nbhd;
     private final RandomlyGeneratedNumbers rn;
     private final CalculateControl cc;
@@ -18,7 +18,7 @@ public class SimulatedAnnealing {
     private final int EVAL_NUM = 10_000;
     private int m = 1;
 
-    public SimulatedAnnealing(SAEvalFunc ef, NbhdFunc nbhd, RandomlyGeneratedNumbers rn, CalculateControl cc) {
+    public SimulatedAnnealing(EvalFunc ef, NbhdFunc nbhd, RandomlyGeneratedNumbers rn, CalculateControl cc) {
         this.ef = ef;
         this.nbhd = nbhd;
         this.rn = rn;
