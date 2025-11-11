@@ -10,6 +10,7 @@ import java.util.stream.DoubleStream;
 public class Point {
     private List<Double> coords;
     private List<UInt16> coords16;
+    private double sigma;
     private final RepresentationConversionService rcs;
 
     public Point(List<Double> coords, RepresentationConversionService rcs) {
@@ -38,6 +39,14 @@ public class Point {
                 .limit(dimSize)
                 .boxed()
                 .toList();
+    }
+
+    public double getSigma() {
+        return sigma;
+    }
+
+    public void setSigma(double sigma) {
+        this.sigma = sigma;
     }
 
     public Point copy() {

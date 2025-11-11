@@ -1,6 +1,7 @@
 package pl.kamil;
 
 import pl.kamil.application.DistributionService;
+import pl.kamil.application.ports.DataExport;
 import pl.kamil.application.usecases.LocalSearchUseCase;
 import pl.kamil.domain.algorithm.ga.GeneticAlgorithm;
 import pl.kamil.domain.algorithm.sa.nat.SimAn;
@@ -19,6 +20,8 @@ import pl.kamil.infrastructure.services.DataProcessor;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 public class Main {
     public static void lab1(RandomlyGeneratedNumbers rn) {
@@ -93,9 +96,11 @@ public class Main {
         var execNum = 100;
         var xMin = -3;
         var xMax = 3;
-
-        var ga = new GeneticAlgorithm(rn);
-        ga.executeAlgorithm(dim, execNum, xMin, xMax, new TestFunc1());
+        final Map<Integer, List<Double>> fxResults = new TreeMap<>();
+        DataExport txtExp = new TXTExport();
+        var ga = new GeneticAlgorithm(rn, new RepresentationConversionService(xMin, xMax));
+        ga.executeAlgorithm(dim, execNum, xMin, xMax, new TestFunc1(), fxResults);
+        txtExp.save(fxResults, "GENETIC_ALGORITHM");
     }
 
     public static void main(String[] args) {

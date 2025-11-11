@@ -24,4 +24,9 @@ public class RandomlyGeneratedNumbers implements RandomNumbers {
     public double nextGaussian() {
         return rg.nextGaussian();
     }
+
+    @Override
+    public double nextGaussian(double mean, double standardDeviation) {
+        return rg.nextGaussian(mean, standardDeviation);
+    }
 }

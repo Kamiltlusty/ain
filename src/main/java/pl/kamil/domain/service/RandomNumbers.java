@@ -5,4 +5,5 @@ public interface RandomNumbers {
     double nextDouble(double upperBoundExclusive);
     double nextDouble(double lowerBoundInclusive, double upperBoundExclusive);
     double nextGaussian();
+    double nextGaussian(double mean, double standardDeviation);
 }
