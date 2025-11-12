@@ -1,4 +1,4 @@
-package pl.kamil.domain.algorithm.ea;
+package pl.kamil.domain.algorithm.ga;
 
 import java.io.*;
 import java.util.*;
@@ -12,7 +12,7 @@ import pl.kamil.domain.service.RandomNumbers;
 import pl.kamil.domain.service.RandomlyGeneratedNumbers;
 import pl.kamil.infrastructure.adapters.TXTExport;
 
-public class EvolutionaryOptimization {
+public class GeneticAlgorithmBinary {
 
     // Parametry algorytmu
     static final int POP_SIZE = 300; // rozmiar populacji
@@ -22,7 +22,7 @@ public class EvolutionaryOptimization {
     static final int MAX_EVALUATIONS = 10_000;
     static final int RUNS = 100;
     static final double CROSSOVER_RATE = 0.02;
-    static final double MUTATION_RATE = 0.99; // prawdopodobienstwo na mutacje
+    static final double MUTATION_RATE = 0.99; // prawdopodobienstwo mutacji
 
     static final RandomNumbers randGen = new RandomlyGeneratedNumbers();
     static final RepresentationConversionService rcs = new RepresentationConversionService(-5.0, 5.0);
