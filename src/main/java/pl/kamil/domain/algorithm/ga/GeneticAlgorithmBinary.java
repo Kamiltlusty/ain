@@ -6,25 +6,25 @@ import java.util.stream.Collectors;
 
 import pl.kamil.domain.algorithm.sa.eval.func.TestFunc1;
 import pl.kamil.domain.algorithm.sa.eval.func.TestFunc2;
+import pl.kamil.domain.algorithm.sa.eval.func.SAEvalFunc;
 import pl.kamil.domain.model.Point;
 import pl.kamil.domain.service.RepresentationConversionService;
 import pl.kamil.domain.service.RandomNumbers;
-import pl.kamil.domain.service.RandomlyGeneratedNumbers;
 import pl.kamil.infrastructure.adapters.TXTExport;
 
 public class GeneticAlgorithmBinary {
 
     // Parametry algorytmu
-    static final int POP_SIZE = 300; // rozmiar populacji
+    static final int POP_SIZE = 320; // rozmiar populacji
     static final int N = 10; // liczba wymiarów
     static final int BITS_PER_DIM = 16; // bity na wymiar
     static final int GENOME_LENGTH = N * BITS_PER_DIM;
     static final int MAX_EVALUATIONS = 10_000;
     static final int RUNS = 100;
-    static final double CROSSOVER_RATE = 0.02;
+    static final double CROSSOVER_RATE = 0.07;
     static final double MUTATION_RATE = 0.99; // prawdopodobienstwo mutacji
 
-    static final RandomNumbers randGen = new RandomlyGeneratedNumbers();
+    static final Random randGen = new Random();
     static final RepresentationConversionService rcs = new RepresentationConversionService(-5.0, 5.0);
     static final TXTExport exporter = new TXTExport();
 
@@ -82,13 +82,26 @@ public class GeneticAlgorithmBinary {
         while (evals < MAX_EVALUATIONS) {
             List<boolean[]> newPop = new ArrayList<>();
 
+            // 1. Znajdź indeks najlepszego osobnika
+            int bestIndex = 0;
+            for (int i = 1; i < fitness.length; i++) {
+                if (fitness[i] < fitness[bestIndex]) {
+                    bestIndex = i;
+                }
+            }
+
+            // 2. Skopiuj najlepszego osobnika (elitaryzm)
+            boolean[] bestIndividual = Arrays.copyOf(population.get(bestIndex), GENOME_LENGTH);
+            newPop.add(bestIndividual);
+
+            // 3. Tworzenie reszty populacji
             while (newPop.size() < POP_SIZE) {
                 boolean[] p1 = tournamentSelection(population, fitness);
                 boolean[] p2 = tournamentSelection(population, fitness);
                 boolean[] c1 = Arrays.copyOf(p1, p1.length);
                 boolean[] c2 = Arrays.copyOf(p2, p2.length);
 
-                if (randGen.nextDouble(1.0) < CROSSOVER_RATE) {
+                if (randGen.nextDouble() < CROSSOVER_RATE) {
                     int point = randGen.nextInt(GENOME_LENGTH);
                     for (int i = point; i < GENOME_LENGTH; i++) {
                         boolean temp = c1[i];
@@ -104,10 +117,14 @@ public class GeneticAlgorithmBinary {
                 if (newPop.size() < POP_SIZE) newPop.add(c2);
             }
 
+            // 4. Zastąp starą populację nową
             population = newPop;
+
+            // 5. Ewaluacja nowej populacji
             fitness = evaluatePopulation(population, funcId, grayCoding);
             evals += POP_SIZE;
 
+            // 6. Aktualizacja najlepszego wyniku
             double currentBest = Arrays.stream(fitness).min().getAsDouble();
             if (currentBest < bestSoFar) bestSoFar = currentBest;
 
@@ -128,7 +145,7 @@ public class GeneticAlgorithmBinary {
         for (int i = 0; i < POP_SIZE; i++) {
             boolean[] genome = new boolean[GENOME_LENGTH];
             for (int j = 0; j < GENOME_LENGTH; j++) {
-                genome[j] = randGen.nextDouble(1.0) < 0.5;
+                genome[j] = randGen.nextDouble() < 0.5;
             }
             pop.add(genome);
         }
@@ -138,7 +155,7 @@ public class GeneticAlgorithmBinary {
     // Mutacja
     private static void mutate(boolean[] genome) {
         for (int i = 0; i < genome.length; i++) {
-            if (randGen.nextDouble(1.0) < MUTATION_RATE) {
+            if (randGen.nextDouble() < MUTATION_RATE) {
                 genome[i] = !genome[i];
             }
         }
