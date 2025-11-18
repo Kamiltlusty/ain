@@ -13,61 +13,70 @@ public class GeneticAlgorithm {
     private final RandomNumbers rn;
     private final RepresentationConversionService rcs;
     private final int EVAL_FUNC_INVOKES = 10_000;
+    private final int POPULATION_SIZE = 100;
 
     public GeneticAlgorithm(RandomNumbers rn, RepresentationConversionService rcs) {
         this.rn = rn;
         this.rcs = rcs;
     }
 
-    public void executeAlgorithm(Integer dim, int execNum, double xMin, double xMax, EvalFunc eFunc, Map<Integer, List<Double>> fxResults) {
+    public void runTask(Integer dim, int execNum, double xMin, double xMax, EvalFunc eFunc, Map<Integer, List<Double>> fxResults) {
         double initialEval = Double.MAX_VALUE;
         for (int i = 0; i < execNum; i++) {
-            List<Double> result = new ArrayList<>();
-            int populationSize = 100;
-            List<Point> population = new ArrayList<>(populationSize);
-            // generowanie populacji (punktów w dziedzinie) i wypelnienie wymiarow losowymi wartosciami
-            // oraz obliczenie poczatkowej sigmy ale do poczatkowej populacji nie trzeba jej zapisywac (nie uczestniczy w mutacji) dopiero do dzieci
-            double initialSigma = (xMax - xMin) * 0.05;
-            List<Point> pointsTmp = Stream.generate(() -> new Point(rcs))
-                    .limit(populationSize)
-                    .toList();
-
-            pointsTmp.forEach(p -> {
-                p.fillCoordsWithRandValsFromDomain(dim, xMin, xMax);
-            });
-            population.addAll(pointsTmp);
-
-            // zastosowanie funkcji ewaluacji na populacji i utworznie mapy chromosom:ewaluacja
-            Map<Point, Double> populationEvaluation = population.stream().collect(Collectors.toMap(
-                    key -> key,
-                    eFunc::evalFunc));
-
-            double eval = initialEval;
-            eval = addEvalToResult(populationEvaluation, eval, result);
-
-            for (int j = 0; j < (EVAL_FUNC_INVOKES - populationSize) / populationSize; j++) {
-                //  turniej w którym będzie t tur losowania l wartosci z ktorych najlepsza zostanie wyselekcjonowana jako rodzic tworzac grupe rodzicow
-                // gdzie t to tyle co populacja, a l to liczba losowo wybranych wartosci
-                int t = populationSize;
-                int l = 2;
-                List<Point> parents = select(t, l, populationEvaluation, population);
-                // rekobinacja z 100 rodziców losujemy k = 3 rodziców i wybieramy na zmiane ich wymiary tworzac dziecko i tak 100 razy i wychodzi nowa populacja
-                int k = 3;
-                List<Point> children = recombine(parents, k, dim);
-                // zapisanie sigmy do dzieci
-                children.forEach(p -> p.setSigma(initialSigma));
-                // mutacja
-                mutation(children, dim);
-                // ewaluacja
-                Map<Point, Double> childrenEvaluation = children.stream().collect(Collectors.toMap(
-                        key -> key,
-                        eFunc::evalFunc));
-                eval = addEvalToResult(childrenEvaluation, eval, result);
-                // zamiana - wybieram lepszego z populacji rodziców (populationEvaluation) i dzieci i zapisuje do populationEvaluation
-                replace(populationSize, population, populationEvaluation, children, childrenEvaluation);
-            }
-            fxResults.put(i, result);
+            executeAlgorithm(dim, xMin, xMax, eFunc, fxResults, initialEval, i);
         }
+    }
+
+    private void executeAlgorithm(Integer dim, double xMin, double xMax, EvalFunc eFunc, Map<Integer, List<Double>> fxResults, double initialEval, int i) {
+        List<Double> result = new ArrayList<>();
+        List<Point> population = new ArrayList<>();
+        // obliczenie poczatkowej sigmy ale do poczatkowej populacji nie trzeba jej zapisywac (nie uczestniczy w mutacji) dopiero do dzieci
+        double initialSigma = (xMax - xMin) * 0.05;
+
+        // generowanie populacji (punktów w dziedzinie) i wypelnienie wymiarow losowymi wartosciami
+        generatePopulation(dim, xMin, xMax, population);
+
+        // zastosowanie funkcji ewaluacji na populacji i utworznie mapy chromosom:ewaluacja
+        Map<Point, Double> populationEvaluation = evaluate(eFunc, population);
+
+        double eval = initialEval;
+        eval = addEvalToResult(populationEvaluation, eval, result);
+
+        for (int j = 0; j < (EVAL_FUNC_INVOKES - POPULATION_SIZE) / POPULATION_SIZE; j++) {
+            //  turniej, w którym będzie t tur losowania l wartosci, z ktorych najlepsza zostanie wyselekcjonowana jako rodzic tworzac grupe rodzicow
+            // gdzie t to tyle co populacja, a l to liczba losowo wybranych wartosci
+            int t = POPULATION_SIZE;
+            int l = 2;
+            List<Point> parents = select(t, l, populationEvaluation, population);
+            // rekobinacja z 100 rodziców losujemy k = 3 rodziców i wybieramy na zmiane ich wymiary tworzac dziecko i tak 100 razy i wychodzi nowa populacja
+            int k = 3;
+            List<Point> children = recombine(parents, k, dim);
+            // zapisanie sigmy do dzieci
+            children.forEach(p -> p.setSigma(initialSigma));
+            // mutacja
+            mutation(children, dim);
+            // ewaluacja dzieci
+            Map<Point, Double> childrenEvaluation = evaluate(eFunc, children);
+            eval = addEvalToResult(childrenEvaluation, eval, result);
+            // zamiana - wybieram lepszego z populacji rodziców (populationEvaluation) i dzieci i zapisuje do populationEvaluation
+            replace(population, populationEvaluation, children, childrenEvaluation);
+        }
+        fxResults.put(i, result);
+    }
+
+    private static Map<Point, Double> evaluate(EvalFunc eFunc, List<Point> data) {
+        return data.stream().collect(Collectors.toMap(
+                key -> key,
+                eFunc::evalFunc));
+    }
+
+    private void generatePopulation(Integer dim, double xMin, double xMax, List<Point> population) {
+        List<Point> pointsTmp = Stream.generate(() -> new Point(rcs))
+                .limit(POPULATION_SIZE)
+                .toList();
+
+        pointsTmp.forEach(p -> p.fillCoordsWithRandValsFromDomain(dim, xMin, xMax));
+        population.addAll(pointsTmp);
     }
 
     private double addEvalToResult(Map<Point, Double> populationEvaluation, double eval, List<Double> result) {
@@ -83,46 +92,24 @@ public class GeneticAlgorithm {
         return eval;
     }
 
-    private void replace(int populationSize,
-                         List<Point> population,
-                         Map<Point, Double> populationEvaluation,
-                         List<Point> children,
-                         Map<Point, Double> childrenEvaluation) {
-        for (int i = 0; i < populationSize; i++) {
-            Point parent = population.get(i);
-            Double parentFitness = populationEvaluation.get(parent);
-
-            Point child = children.get(i);
-            Double childFitness = childrenEvaluation.get(child);
-
-            // listy zapewniaja spojnosc rodzic dziecko
-            if (childFitness < parentFitness) {
-                population.set(i, child);
-                populationEvaluation.remove(parent);
-                populationEvaluation.put(child, childFitness);
+    private List<Point> select(int t, int l, Map<Point, Double> populationEvaluation, List<Point> population) {
+        List<Point> parents = new ArrayList<>();
+        for (int i = 0; i < t; i++) {
+            Point best = drawPointFromPopulation(population);
+            for (int j = 0; j < l; j++) {
+                Point drawnPoint = drawPointFromPopulation(population);
+                // minimalizacja
+                if (populationEvaluation.get(drawnPoint) <= populationEvaluation.get(best)) {
+                    best = drawnPoint;
+                }
             }
+            parents.add(best);
         }
+        return parents;
     }
 
-    private void mutation(List<Point> children, Integer dim) {
-        double epsilon0 = 1e-8;
-        double tau = 1 / Math.sqrt(dim);
-        // krok samo adaptacji
-        for (var child : children) {
-            double sigmaPrim = child.getSigma() * Math.exp(tau * rn.nextGaussian());
-            if (sigmaPrim < epsilon0) {
-                sigmaPrim = epsilon0;
-            }
-            child.setSigma(sigmaPrim);
-        }
-        // mutacja
-        for (var child : children) {
-            List<Double> newCoords = new ArrayList<>();
-            for (int i = 0; i < dim; i++) {
-                newCoords.add(child.getCoords().get(i) + rn.nextGaussian(0, child.getSigma()));
-            }
-            child.setCoords(newCoords);
-        }
+    private Point drawPointFromPopulation(List<Point> population) {
+        return population.get(rn.nextInt(population.size()));
     }
 
     private List<Point> recombine(List<Point> parents, int k, int dim) {
@@ -148,23 +135,44 @@ public class GeneticAlgorithm {
         return chosen;
     }
 
-    private List<Point> select(int t, int l, Map<Point, Double> populationEvaluation, List<Point> population) {
-        List<Point> parents = new ArrayList<>();
-        for (int i = 0; i < t; i++) {
-            Point best = drawPointFromPopulation(population);
-            for (int j = 0; j < l; j++) {
-                Point drawnPoint = drawPointFromPopulation(population);
-                // minimalizacja
-                if (populationEvaluation.get(drawnPoint) <= populationEvaluation.get(best)) {
-                    best = drawnPoint;
-                }
+    private void mutation(List<Point> children, Integer dim) {
+        double epsilon0 = 1e-8;
+        double tau = 1 / Math.sqrt(dim);
+        // krok samo adaptacji
+        for (var child : children) {
+            double sigmaPrim = child.getSigma() * Math.exp(tau * rn.nextGaussian());
+            if (sigmaPrim < epsilon0) {
+                sigmaPrim = epsilon0;
             }
-            parents.add(best);
+            child.setSigma(sigmaPrim);
         }
-        return parents;
+        // mutacja
+        for (var child : children) {
+            List<Double> newCoords = new ArrayList<>();
+            for (int i = 0; i < dim; i++) {
+                newCoords.add(child.getCoords().get(i) + rn.nextGaussian(0, child.getSigma()));
+            }
+            child.setCoords(newCoords);
+        }
     }
 
-    private Point drawPointFromPopulation(List<Point> population) {
-        return population.get(rn.nextInt(population.size()));
+    private void replace(List<Point> population,
+                         Map<Point, Double> populationEvaluation,
+                         List<Point> children,
+                         Map<Point, Double> childrenEvaluation) {
+        for (int i = 0; i < POPULATION_SIZE; i++) {
+            Point parent = population.get(i);
+            Double parentFitness = populationEvaluation.get(parent);
+
+            Point child = children.get(i);
+            Double childFitness = childrenEvaluation.get(child);
+
+            // listy zapewniaja spojnosc rodzic dziecko
+            if (childFitness < parentFitness) {
+                population.set(i, child);
+                populationEvaluation.remove(parent);
+                populationEvaluation.put(child, childFitness);
+            }
+        }
     }
 }

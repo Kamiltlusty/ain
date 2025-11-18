@@ -4,21 +4,16 @@ import pl.kamil.application.DistributionService;
 import pl.kamil.application.ports.DataExport;
 import pl.kamil.application.usecases.LocalSearchUseCase;
 import pl.kamil.domain.algorithm.ga.GeneticAlgorithm;
-import pl.kamil.domain.algorithm.sa.nat.SimAn;
 import pl.kamil.domain.model.Point;
 import pl.kamil.domain.service.*;
-import pl.kamil.application.SimulatedAnnealingService;
 import pl.kamil.domain.algorithm.ls.LocalSearch;
 import pl.kamil.domain.algorithm.NbhdFunc;
 import pl.kamil.domain.algorithm.ls.eval.func.Spherical;
-import pl.kamil.domain.algorithm.sa.SimulatedAnnealing;
-import pl.kamil.domain.algorithm.sa.calc.control.*;
 import pl.kamil.domain.algorithm.sa.eval.func.TestFunc1;
 import pl.kamil.infrastructure.adapters.ExcelExport;
 import pl.kamil.infrastructure.adapters.TXTExport;
 import pl.kamil.infrastructure.services.DataProcessor;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -99,8 +94,8 @@ public class Main {
         final Map<Integer, List<Double>> fxResults = new TreeMap<>();
         DataExport txtExp = new TXTExport();
         var ga = new GeneticAlgorithm(rn, new RepresentationConversionService(xMin, xMax));
-        ga.executeAlgorithm(dim, execNum, xMin, xMax, new TestFunc1(), fxResults);
-        txtExp.save(fxResults, "GENETIC_ALGORITHM");
+        ga.runTask(dim, execNum, xMin, xMax, new TestFunc1(), fxResults);
+        txtExp.save(fxResults, "GENETIC_ALGORITHM_F1");
     }
 
     public static void main(String[] args) {
