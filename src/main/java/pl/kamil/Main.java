@@ -4,6 +4,7 @@ import pl.kamil.application.DistributionService;
 import pl.kamil.application.ports.DataExport;
 import pl.kamil.application.usecases.LocalSearchUseCase;
 import pl.kamil.domain.algorithm.ga.GeneticAlgorithm;
+import pl.kamil.domain.algorithm.sa.eval.func.TestFunc2;
 import pl.kamil.domain.model.Point;
 import pl.kamil.domain.service.*;
 import pl.kamil.domain.algorithm.ls.LocalSearch;
@@ -89,13 +90,15 @@ public class Main {
     public static void lab4(RandomNumbers rn) {
         var dim = 10;
         var execNum = 100;
-        var xMin = -3;
-        var xMax = 3;
+        var xMin = -32.768;
+        var xMax = 32.768;
         final Map<Integer, List<Double>> fxResults = new TreeMap<>();
         DataExport txtExp = new TXTExport();
         var ga = new GeneticAlgorithm(rn, new RepresentationConversionService(xMin, xMax));
-        ga.runTask(dim, execNum, xMin, xMax, new TestFunc1(), fxResults);
-        txtExp.save(fxResults, "GENETIC_ALGORITHM_F1");
+        boolean isBinary = true;
+
+        ga.runTask(dim, execNum, xMin, xMax, new TestFunc2(), fxResults, isBinary);
+        txtExp.save(fxResults, "GENETIC_ALGORITHM_F2");
     }
 
     public static void main(String[] args) {
