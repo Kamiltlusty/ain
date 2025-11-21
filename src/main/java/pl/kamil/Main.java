@@ -92,13 +92,16 @@ public class Main {
         var execNum = 100;
         var xMin = -32.768;
         var xMax = 32.768;
+        Double optimum = 0.0;
         final Map<Integer, List<Double>> fxResults = new TreeMap<>();
+        final Map<Integer, List<Double>> ECDF = new TreeMap<>();
         DataExport txtExp = new TXTExport();
         var ga = new GeneticAlgorithm(rn, new RepresentationConversionService(xMin, xMax));
         boolean isBinary = true;
 
-        ga.runTask(dim, execNum, xMin, xMax, new TestFunc2(), fxResults, isBinary);
-        txtExp.save(fxResults, "GENETIC_ALGORITHM_F2");
+        ga.runTask(dim, execNum, xMin, xMax, new TestFunc2(), fxResults, isBinary, optimum, ECDF);
+        txtExp.save(fxResults, "GENETIC_ALGORITHM_F2_BINARY");
+        txtExp.save(ECDF, "ECDF_FUNCTION2_BINARY");
     }
 
     public static void main(String[] args) {

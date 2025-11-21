@@ -21,14 +21,18 @@ public class GeneticAlgorithm {
         this.rcs = rcs;
     }
 
-    public void runTask(Integer dim, int execNum, double xMin, double xMax, EvalFunc eFunc, Map<Integer, List<Double>> fxResults, boolean isBinary) {
+    public void runTask(Integer dim, int execNum, double xMin, double xMax, EvalFunc eFunc, Map<Integer, List<Double>> fxResults, boolean isBinary, Double optimum, Map<Integer, List<Double>> ECDF) {
         double initialEval = Double.MAX_VALUE;
         for (int i = 0; i < execNum; i++) {
-            executeAlgorithm(dim, xMin, xMax, eFunc, fxResults, initialEval, i, isBinary);
+            executeAlgorithm(dim, xMin, xMax, eFunc, fxResults, initialEval, i, isBinary, optimum, ECDF);
         }
     }
 
-    private void executeAlgorithm(Integer dim, double xMin, double xMax, EvalFunc eFunc, Map<Integer, List<Double>> fxResults, double initialEval, int i, boolean isBinary) {
+    private void executeAlgorithm(Integer dim, double xMin, double xMax,
+                                  EvalFunc eFunc, Map<Integer, List<Double>> fxResults,
+                                  double initialEval, int i, boolean isBinary,
+                                  Double optimum, Map<Integer, List<Double>> ECDF) {
+        List<Double> ecdfPerAlgorithm = new ArrayList<>();
         List<Double> result = new ArrayList<>();
         List<Point> population = new ArrayList<>();
         // obliczenie poczatkowej sigmy ale do poczatkowej populacji nie trzeba jej zapisywac (nie uczestniczy w mutacji) dopiero do dzieci
@@ -41,7 +45,7 @@ public class GeneticAlgorithm {
         Map<Point, Double> populationEvaluation = evaluate(eFunc, population);
 
         double eval = initialEval;
-        eval = addEvalToResult(populationEvaluation, eval, result);
+        eval = addEvalToResult(populationEvaluation, eval, result, optimum, ecdfPerAlgorithm);
 
         for (int j = 0; j < (EVAL_FUNC_INVOKES - POPULATION_SIZE) / POPULATION_SIZE; j++) {
             //  turniej, w którym będzie t tur losowania l wartosci, z ktorych najlepsza zostanie wyselekcjonowana jako rodzic tworzac grupe rodzicow
@@ -68,11 +72,12 @@ public class GeneticAlgorithm {
             }
             // ewaluacja dzieci
             Map<Point, Double> childrenEvaluation = evaluate(eFunc, children);
-            eval = addEvalToResult(childrenEvaluation, eval, result);
+            eval = addEvalToResult(childrenEvaluation, eval, result, optimum, ecdfPerAlgorithm);
             // zamiana - wybieram lepszego z populacji rodziców (populationEvaluation) i dzieci i zapisuje do populationEvaluation
             replace(population, populationEvaluation, children, childrenEvaluation);
         }
         fxResults.put(i, result);
+        ECDF.put(i, ecdfPerAlgorithm);
     }
 
     private static Map<Point, Double> evaluate(EvalFunc eFunc, List<Point> data) {
@@ -90,15 +95,12 @@ public class GeneticAlgorithm {
         population.addAll(pointsTmp);
     }
 
-    private double addEvalToResult(Map<Point, Double> populationEvaluation, double eval, List<Double> result) {
+    private double addEvalToResult(Map<Point, Double> populationEvaluation, double eval, List<Double> result, Double optimum, List<Double> ecdfPerAlgorithm) {
         for (var p : populationEvaluation.values()) {
             double newEval = p;
-            if (newEval < eval) {
-                result.add(newEval);
-                eval = newEval;
-            } else {
-                result.add(eval);
-            }
+            eval = Math.min(eval, newEval);
+            result.add(eval);
+            ecdfPerAlgorithm.add(eval - optimum);
         }
         return eval;
     }
