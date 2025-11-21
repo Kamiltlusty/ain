@@ -4,21 +4,17 @@ import pl.kamil.application.DistributionService;
 import pl.kamil.application.ports.DataExport;
 import pl.kamil.application.usecases.LocalSearchUseCase;
 import pl.kamil.domain.algorithm.ga.GeneticAlgorithm;
-import pl.kamil.domain.algorithm.sa.nat.SimAn;
+import pl.kamil.domain.algorithm.sa.eval.func.TestFunc2;
 import pl.kamil.domain.model.Point;
 import pl.kamil.domain.service.*;
-import pl.kamil.application.SimulatedAnnealingService;
 import pl.kamil.domain.algorithm.ls.LocalSearch;
 import pl.kamil.domain.algorithm.NbhdFunc;
 import pl.kamil.domain.algorithm.ls.eval.func.Spherical;
-import pl.kamil.domain.algorithm.sa.SimulatedAnnealing;
-import pl.kamil.domain.algorithm.sa.calc.control.*;
 import pl.kamil.domain.algorithm.sa.eval.func.TestFunc1;
 import pl.kamil.infrastructure.adapters.ExcelExport;
 import pl.kamil.infrastructure.adapters.TXTExport;
 import pl.kamil.infrastructure.services.DataProcessor;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -94,13 +90,18 @@ public class Main {
     public static void lab4(RandomNumbers rn) {
         var dim = 10;
         var execNum = 100;
-        var xMin = -3;
-        var xMax = 3;
+        var xMin = -32.768;
+        var xMax = 32.768;
+        Double optimum = 0.0;
         final Map<Integer, List<Double>> fxResults = new TreeMap<>();
+        final Map<Integer, List<Double>> ECDF = new TreeMap<>();
         DataExport txtExp = new TXTExport();
         var ga = new GeneticAlgorithm(rn, new RepresentationConversionService(xMin, xMax));
-        ga.executeAlgorithm(dim, execNum, xMin, xMax, new TestFunc1(), fxResults);
-        txtExp.save(fxResults, "GENETIC_ALGORITHM");
+        boolean isBinary = true;
+
+        ga.runTask(dim, execNum, xMin, xMax, new TestFunc2(), fxResults, isBinary, optimum, ECDF);
+        txtExp.save(fxResults, "GENETIC_ALGORITHM_F2_BINARY");
+        txtExp.save(ECDF, "ECDF_FUNCTION2_BINARY");
     }
 
     public static void main(String[] args) {
