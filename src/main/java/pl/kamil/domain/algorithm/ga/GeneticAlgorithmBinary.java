@@ -170,7 +170,7 @@ public class GeneticAlgorithmBinary {
     private static double[] evaluatePopulation(List<boolean[]> pop, int funcId, boolean grayCoding) {
         double[] fit = new double[pop.size()];
 
-        var func = (funcId == 1) ? new TestFunc2() : new TestFunc1();
+        var func = (funcId == 1) ? new TestFunc1() : new TestFunc2();
 
         for (int i = 0; i < pop.size(); i++) {
             double[] decoded = decode(pop.get(i), grayCoding);

@@ -1,5 +1,6 @@
-package pl.kamil.domain.algorithm.sa.eval.func;
+package pl.kamil.domain.eval.func;
 
+import pl.kamil.domain.algorithm.sa.eval.func.EvalFunc;
 import pl.kamil.domain.model.Point;
 
 // A.2.4 Salomon
