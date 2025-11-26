@@ -111,7 +111,11 @@ public class Kolokwium {
             List<Point> children = recombine(parents, k, dim);
 
             // zapisanie sigmy do dzieci
-            children.forEach(p -> p.setSigma(initialSigma));
+            List<Double> initialSigmas = new ArrayList<>();
+            for (int z = 0; z < dim; z++) {
+                initialSigmas.add(initialSigma);
+            }
+            children.forEach(p -> p.setSigmas(new ArrayList<>(initialSigmas)));
             // mutacja
             mutation(children, dim);
 
@@ -125,8 +129,6 @@ public class Kolokwium {
         ECDF.put(i, ecdfPerAlgorithm);
         return ecdfPerAlgorithm;
     }
-
-
 
     private static Map<Point, Double> evaluate(EvalFunc eFunc, List<Point> data, double wi, double xMin, double xMax) {
         return data.stream().collect(Collectors.toMap(
@@ -187,38 +189,20 @@ public class Kolokwium {
         return population.get(rn.nextInt(population.size()));
     }
 
-//    private List<Point> recombine(List<Point> parents, int k, int dim) {
-//        List<Point> children = new ArrayList<>();
-//        // z 100 rodziców losujemy k = 3 rodziców i wybieramy na zmiane ich wymiary tworzac dziecko i tak 100 razy i wychodzi nowa populacja
-//        for (int i = 0; i < parents.size(); i++) {
-//            List<Point> chosen = chooseK(parents, k);
-//            Point child = new Point(rcs);
-//            List<Double> dims = new ArrayList<>(dim);
-//            for (int j = 0; j < dim; j++) {
-//                dims.add(chosen.get(j % k).getCoords().get(j));
-//            }
-//            child.setCoords(dims);
-//            children.add(child);
-//        }
-//        return children;
-//    }
-
     private List<Point> recombine(List<Point> parents, int k, int dim) {
         List<Point> children = new ArrayList<>();
 
         for (int i = 0; i < parents.size(); i++) {
-            // Wybierz k rodziców
             List<Point> chosen = chooseK(parents, k);
             Point child = new Point(rcs);
-            List<Double> dims = new ArrayList<>(dim);
+            List<Double> dims = new ArrayList<>();
 
             for (int j = 0; j < dim; j++) {
-                // Arithmetic Crossover: średnia wartości rodziców w danym wymiarze
                 double sum = 0;
                 for (Point p : chosen) {
                     sum += p.getCoords().get(j);
                 }
-                dims.add(sum / k); // średnia z k rodziców
+                dims.add(sum / k);
             }
 
             child.setCoords(dims);
@@ -237,26 +221,36 @@ public class Kolokwium {
         return chosen;
     }
 
-    private void mutation(List<Point> children, Integer dim) {
+    private void mutation(List<Point> children, int dim) {
         double epsilon0 = 1e-8;
-        double tau = 1 / Math.sqrt(dim);
-        // krok samo adaptacji
+        double tauPrime = 1 / Math.sqrt(2.0 * dim);
+        double tau = 1 / Math.sqrt(2.0 * Math.sqrt(dim));
+
         for (var child : children) {
-            double sigmaPrim = child.getSigma() * Math.exp(tau * rn.nextGaussian());
-            if (sigmaPrim < epsilon0) {
-                sigmaPrim = epsilon0;
+            List<Double> sigmas = child.getSigmas();
+
+            double globalGaussian = rn.nextGaussian();
+            List<Double> newSigmas = new ArrayList<>();
+            for (int i = 0; i < dim; i++) {
+                double sigma_i = sigmas.get(i);
+                double localGaussian = rn.nextGaussian();
+                double sigmaPrim = sigma_i * Math.exp(tauPrime * globalGaussian + tau * localGaussian);
+
+                if (sigmaPrim < epsilon0) sigmaPrim = epsilon0;
+
+                newSigmas.add(sigmaPrim);
             }
-            child.setSigma(sigmaPrim);
-        }
-        // mutacja
-        for (var child : children) {
+            child.setSigmas(newSigmas);
+
             List<Double> newCoords = new ArrayList<>();
             for (int i = 0; i < dim; i++) {
-                newCoords.add(child.getCoords().get(i) + rn.nextGaussian(0, child.getSigma()));
+                double x = child.getCoords().get(i) + rn.nextGaussian(0, newSigmas.get(i));
+                newCoords.add(x);
             }
             child.setCoords(newCoords);
         }
     }
+
 
     private void replace(List<Point> population,
                          Map<Point, Double> populationEvaluation,

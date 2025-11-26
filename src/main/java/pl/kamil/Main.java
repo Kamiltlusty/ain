@@ -4,9 +4,11 @@ import pl.kamil.application.DistributionService;
 import pl.kamil.application.ports.DataExport;
 import pl.kamil.application.usecases.LocalSearchUseCase;
 import pl.kamil.domain.algorithm.Kolokwium;
-import pl.kamil.domain.algorithm.ga.GeneticAlgorithm;
+//import pl.kamil.domain.algorithm.ga.GeneticAlgorithm;
 import pl.kamil.domain.algorithm.sa.eval.func.TestFunc2;
 import pl.kamil.domain.eval.func.GeneralizedRosenbrock;
+import pl.kamil.domain.eval.func.Salomon;
+import pl.kamil.domain.eval.func.Whitley;
 import pl.kamil.domain.model.Point;
 import pl.kamil.domain.service.*;
 import pl.kamil.domain.algorithm.ls.LocalSearch;
@@ -88,33 +90,33 @@ public class Main {
         }*/
     }
 
-    public static void lab4(RandomNumbers rn) {
-        var dim = 10;
-        var execNum = 100;
-        var xMin = -32.768;
-        var xMax = 32.768;
-        Double optimum = 0.0;
-        final Map<Integer, List<Double>> fxResults = new TreeMap<>();
-        final Map<Integer, List<Double>> ECDF = new TreeMap<>();
-        DataExport txtExp = new TXTExport();
-        var ga = new GeneticAlgorithm(rn, new RepresentationConversionService(xMin, xMax));
-        boolean isBinary = true;
-
-        ga.runTask(dim, execNum, xMin, xMax, new TestFunc2(), fxResults, isBinary, optimum, ECDF);
-        txtExp.save(fxResults, "GENETIC_ALGORITHM_F2_REAL");
-        txtExp.save(ECDF, "ECDF_FUNCTION2_REAL");
-    }
+//    public static void lab4(RandomNumbers rn) {
+//        var dim = 10;
+//        var execNum = 100;
+//        var xMin = -32.768;
+//        var xMax = 32.768;
+//        Double optimum = 0.0;
+//        final Map<Integer, List<Double>> fxResults = new TreeMap<>();
+//        final Map<Integer, List<Double>> ECDF = new TreeMap<>();
+//        DataExport txtExp = new TXTExport();
+//        var ga = new GeneticAlgorithm(rn, new RepresentationConversionService(xMin, xMax));
+//        boolean isBinary = true;
+//
+//        ga.runTask(dim, execNum, xMin, xMax, new TestFunc2(), fxResults, isBinary, optimum, ECDF);
+//        txtExp.save(fxResults, "GENETIC_ALGORITHM_F2_REAL");
+//        txtExp.save(ECDF, "ECDF_FUNCTION2_REAL");
+//    }
 
     public static void kolokwium(RandomNumbers rn) {
-        var dim = 15;
+        var dim = 30;
         var execNum = 100;
-        var xMin = -30;
-        var xMax = 30;
+        var xMin = -10.24;
+        var xMax = 10.24;
         Double optimum = 0.0;
-        int population_size = 100;
+        int population_size = 1000;
         var alpha = 0.001;
-        var k = 3; // liczba rodzicow do rekombinacji
-        var wi = 100.0; // koszt naruszenia ograniczeń
+        var k = 2; // liczba rodzicow do rekombinacji
+        var wi = 200.0; // koszt naruszenia ograniczeń
         var l = 2; // liczba uczestnikow turnieju
 
         final Map<Integer, List<Double>> fxResults = new TreeMap<>();
@@ -123,7 +125,7 @@ public class Main {
         var kolokwium = new Kolokwium(rn, new RepresentationConversionService(xMin, xMax));
 
         int[][] ecdfValues = kolokwium.runTask(dim, execNum, population_size, xMin, xMax,
-                new GeneralizedRosenbrock(), wi, fxResults, optimum, ECDF, k, alpha, l);
+                new Whitley(), wi, fxResults, optimum, ECDF, k, alpha, l);
         txtExp.save(fxResults, "ROSENBROCK_REAL");
         txtExp.save(ECDF, "ECDF_ROSENBROCK_REAL");
         txtExp.save(ecdfValues, "Wartosci_do_wykresu_ecdf");

@@ -10,7 +10,7 @@ import java.util.stream.DoubleStream;
 public class Point {
     private List<Double> coords;
     private List<UInt16> coords16;
-    private double sigma;
+    private List<Double> sigmas;
     private final RepresentationConversionService rcs;
 
     public Point(List<Double> coords, RepresentationConversionService rcs) {
@@ -41,13 +41,29 @@ public class Point {
                 .toList();
     }
 
-    public double getSigma() {
-        return sigma;
+    public List<Double> getSigmas() {
+        return sigmas;
     }
 
-    public void setSigma(double sigma) {
-        this.sigma = sigma;
+    public void setSigmas(List<Double> sigmas) {
+        this.sigmas = sigmas;
     }
+
+
+//    public Point copy() {
+//        List<Double> newCoords = coords == null ? null : coords.stream()
+//                .map(Double::valueOf)
+//                .toList();
+//
+//        List<UInt16> newCoords16 = coords16 == null ? null : coords16.stream()
+//                .map(UInt16::copy)
+//                .toList();
+//
+//        Point copy = new Point(newCoords, rcs);
+//        copy.setCoords16(newCoords16);
+//
+//        return copy;
+//    }
 
     public Point copy() {
         List<Double> newCoords = coords == null ? null : coords.stream()
@@ -58,11 +74,16 @@ public class Point {
                 .map(UInt16::copy)
                 .toList();
 
+        List<Double> newSigmas = sigmas == null ? null : sigmas.stream()
+                .map(Double::valueOf)
+                .toList();
+
         Point copy = new Point(newCoords, rcs);
-        copy.setCoords16(newCoords16);
+        copy.setSigmas(newSigmas);
 
         return copy;
     }
+
 
     public void fromUInt16toDomain() {
         setCoords(getCoords16().stream()
