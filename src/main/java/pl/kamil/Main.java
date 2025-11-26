@@ -106,19 +106,24 @@ public class Main {
     }
 
     public static void kolokwium(RandomNumbers rn) {
-        var dim = 5;
+        var dim = 15;
         var execNum = 100;
-        int population_size = 100;
         var xMin = -30;
         var xMax = 30;
         Double optimum = 0.0;
+        int population_size = 100;
+        var alpha = 0.001;
+        var k = 3; // liczba rodzicow do rekombinacji
         var wi = 100.0; // koszt naruszenia ograniczeń
+        var l = 2; // liczba uczestnikow turnieju
+
         final Map<Integer, List<Double>> fxResults = new TreeMap<>();
         final Map<Integer, List<Double>> ECDF = new TreeMap<>();
         DataExport txtExp = new TXTExport();
-        var k = new Kolokwium(rn, new RepresentationConversionService(xMin, xMax));
+        var kolokwium = new Kolokwium(rn, new RepresentationConversionService(xMin, xMax));
 
-        int[][] ecdfValues = k.runTask(dim, execNum, population_size, xMin, xMax, new GeneralizedRosenbrock(), wi, fxResults, optimum, ECDF);
+        int[][] ecdfValues = kolokwium.runTask(dim, execNum, population_size, xMin, xMax,
+                new GeneralizedRosenbrock(), wi, fxResults, optimum, ECDF, k, alpha, l);
         txtExp.save(fxResults, "ROSENBROCK_REAL");
         txtExp.save(ECDF, "ECDF_ROSENBROCK_REAL");
         txtExp.save(ecdfValues, "Wartosci_do_wykresu_ecdf");

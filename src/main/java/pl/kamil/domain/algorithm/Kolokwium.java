@@ -16,7 +16,6 @@ import java.util.stream.Stream;
 public class Kolokwium {
     private final RandomNumbers rn;
     private final RepresentationConversionService rcs;
-    private int eval_func_invokes = 10_000;
 
     public Kolokwium(RandomNumbers rn, RepresentationConversionService rcs) {
         this.rn = rn;
@@ -26,10 +25,13 @@ public class Kolokwium {
     public int[][] runTask(Integer dim, int execNum, int population_size, double xMin,
                            double xMax, EvalFunc eFunc, double wi,
                            Map<Integer, List<Double>> fxResults,
-                           Double optimum, Map<Integer, List<Double>> ECDF)
+                           Double optimum, Map<Integer, List<Double>> ECDF,
+                           int k, double alpha, int l)
     {
         double initialEval = Double.MAX_VALUE;
-        this.eval_func_invokes = eval_func_invokes * dim;
+
+        // liczba wywołań
+        int eval_func_invokes = 10_000 * dim;
         List<Integer> invokeThresholds = new ArrayList<>();
         List<Double> qualityThresholds = new ArrayList<>();
 
@@ -40,7 +42,8 @@ public class Kolokwium {
         int[][] thresholdValues = new int[invokeThresholds.size()][qualityThresholds.size()];
 
         for (int i = 0; i < execNum; i++) {
-            List<Double> difference = executeAlgorithm(dim, population_size, xMin, xMax, eFunc, wi, fxResults, initialEval, i, optimum, ECDF);
+            List<Double> difference = executeAlgorithm(dim, population_size, eval_func_invokes,
+                    xMin, xMax, eFunc, wi, fxResults, initialEval, i, optimum, ECDF, k, alpha, l);
 
             ecdfChartDataGenerator(difference, invokeThresholds, qualityThresholds, thresholdValues);
         }
@@ -58,54 +61,6 @@ public class Kolokwium {
             }
         }
     }
-
-    private List<Double> executeAlgorithm(Integer dim, int population_size, double xMin, double xMax,
-                                          EvalFunc eFunc, double wi, Map<Integer, List<Double>> fxResults,
-                                          double initialEval, int i,
-                                          Double optimum, Map<Integer, List<Double>> ECDF) {
-        List<Double> ecdfPerAlgorithm = new ArrayList<>();
-        List<Double> result = new ArrayList<>();
-        List<Point> population = new ArrayList<>();
-
-        // obliczenie poczatkowej sigmy ale do poczatkowej populacji nie trzeba jej zapisywac (nie uczestniczy w mutacji) dopiero do dzieci
-        double initialSigma = (xMax - xMin) * 0.05;
-
-        // generowanie populacji (punktów w dziedzinie) i wypelnienie wymiarow losowymi wartosciami
-        generatePopulation(dim, xMin, xMax, population, population_size);
-
-        // zastosowanie funkcji ewaluacji na populacji i utworznie mapy chromosom:ewaluacja
-        Map<Point, Double> populationEvaluation = evaluate(eFunc, population, wi, xMin, xMax);
-
-        double eval = initialEval;
-        eval = addEvalToResult(populationEvaluation, eval, result, optimum, ecdfPerAlgorithm);
-
-        for (int j = 0; j < (eval_func_invokes - population_size) / population_size; j++) {
-            //  turniej, w którym będzie t tur losowania l wartosci, z ktorych najlepsza zostanie wyselekcjonowana jako rodzic tworzac grupe rodzicow
-            // gdzie t to tyle co populacja, a l to liczba losowo wybranych wartosci
-            int t = population_size;
-            int l = 2;
-            List<Point> parents = select(t, l, populationEvaluation, population);
-
-            // rekombinacja
-            int k = 3;
-            List<Point> children = recombine(parents, k, dim);
-
-            // zapisanie sigmy do dzieci
-            children.forEach(p -> p.setSigma(initialSigma));
-            // mutacja
-            mutation(children, dim);
-
-            // ewaluacja dzieci
-            Map<Point, Double> childrenEvaluation = evaluate(eFunc, children, wi, xMin, xMax);
-            eval = addEvalToResult(childrenEvaluation, eval, result, optimum, ecdfPerAlgorithm);
-            // zamiana - wybieram lepszego z populacji rodziców (populationEvaluation) i dzieci i zapisuje do populationEvaluation
-            replace(population, populationEvaluation, children, childrenEvaluation, population_size);
-        }
-        fxResults.put(i, result);
-        ECDF.put(i, ecdfPerAlgorithm);
-        return ecdfPerAlgorithm;
-    }
-
 
     private void evaluateInvokeThresholds(List<Integer> invokeThresholds, Integer dim) {
         List<Double> exponent = DoubleStream.iterate(0.0, x -> x + 0.1)
@@ -126,10 +81,54 @@ public class Kolokwium {
         qualityThresholds.addAll(thresholds);
     }
 
+    private List<Double> executeAlgorithm(Integer dim, int population_size, int eval_func_invokes, double xMin, double xMax,
+                                          EvalFunc eFunc, double wi, Map<Integer, List<Double>> fxResults,
+                                          double initialEval, int i,
+                                          Double optimum, Map<Integer, List<Double>> ECDF, int k, double alpha, int l) {
+        List<Double> ecdfPerAlgorithm = new ArrayList<>();
+        List<Double> result = new ArrayList<>();
+        List<Point> population = new ArrayList<>();
+
+        // obliczenie poczatkowej sigmy ale do poczatkowej populacji nie trzeba jej zapisywac (nie uczestniczy w mutacji) dopiero do dzieci
+        double initialSigma = (xMax - xMin) * alpha;
+
+        // generowanie populacji (punktów w dziedzinie) i wypelnienie wymiarow losowymi wartosciami
+        generatePopulation(dim, xMin, xMax, population, population_size);
+
+        // zastosowanie funkcji ewaluacji na populacji i utworznie mapy chromosom:ewaluacja
+        Map<Point, Double> populationEvaluation = evaluate(eFunc, population, wi, xMin, xMax);
+
+        double eval = initialEval;
+        eval = addEvalToResult(populationEvaluation, eval, result, optimum, ecdfPerAlgorithm);
+
+        for (int j = 0; j < (eval_func_invokes - population_size) / population_size; j++) {
+            //  turniej, w którym będzie t tur losowania l wartosci, z ktorych najlepsza zostanie wyselekcjonowana jako rodzic tworzac grupe rodzicow
+            // gdzie t to tyle co populacja, a l to liczba losowo wybranych wartosci
+            int t = population_size;
+            List<Point> parents = select(t, l, populationEvaluation, population);
+
+            // rekombinacja
+            List<Point> children = recombine(parents, k, dim);
+
+            // zapisanie sigmy do dzieci
+            children.forEach(p -> p.setSigma(initialSigma));
+            // mutacja
+            mutation(children, dim);
+
+            // ewaluacja dzieci
+            Map<Point, Double> childrenEvaluation = evaluate(eFunc, children, wi, xMin, xMax);
+            eval = addEvalToResult(childrenEvaluation, eval, result, optimum, ecdfPerAlgorithm);
+            // zamiana - wybieram lepszego z populacji rodziców (populationEvaluation) i dzieci i zapisuje do populationEvaluation
+            replace(population, populationEvaluation, children, childrenEvaluation, population_size);
+        }
+        fxResults.put(i, result);
+        ECDF.put(i, ecdfPerAlgorithm);
+        return ecdfPerAlgorithm;
+    }
+
+
 
     private static Map<Point, Double> evaluate(EvalFunc eFunc, List<Point> data, double wi, double xMin, double xMax) {
-
-
         return data.stream().collect(Collectors.toMap(
                 key -> key,
                 p -> eFunc.evalFunc(p) + constraintPenalizing(p, wi, xMin, xMax)));
@@ -188,19 +187,44 @@ public class Kolokwium {
         return population.get(rn.nextInt(population.size()));
     }
 
+//    private List<Point> recombine(List<Point> parents, int k, int dim) {
+//        List<Point> children = new ArrayList<>();
+//        // z 100 rodziców losujemy k = 3 rodziców i wybieramy na zmiane ich wymiary tworzac dziecko i tak 100 razy i wychodzi nowa populacja
+//        for (int i = 0; i < parents.size(); i++) {
+//            List<Point> chosen = chooseK(parents, k);
+//            Point child = new Point(rcs);
+//            List<Double> dims = new ArrayList<>(dim);
+//            for (int j = 0; j < dim; j++) {
+//                dims.add(chosen.get(j % k).getCoords().get(j));
+//            }
+//            child.setCoords(dims);
+//            children.add(child);
+//        }
+//        return children;
+//    }
+
     private List<Point> recombine(List<Point> parents, int k, int dim) {
         List<Point> children = new ArrayList<>();
-        // z 100 rodziców losujemy k = 3 rodziców i wybieramy na zmiane ich wymiary tworzac dziecko i tak 100 razy i wychodzi nowa populacja
+
         for (int i = 0; i < parents.size(); i++) {
+            // Wybierz k rodziców
             List<Point> chosen = chooseK(parents, k);
             Point child = new Point(rcs);
             List<Double> dims = new ArrayList<>(dim);
+
             for (int j = 0; j < dim; j++) {
-                dims.add(chosen.get(j % k).getCoords().get(j));
+                // Arithmetic Crossover: średnia wartości rodziców w danym wymiarze
+                double sum = 0;
+                for (Point p : chosen) {
+                    sum += p.getCoords().get(j);
+                }
+                dims.add(sum / k); // średnia z k rodziców
             }
+
             child.setCoords(dims);
             children.add(child);
         }
+
         return children;
     }
 
