@@ -2,7 +2,6 @@ package pl.kamil.domain.algorithm;
 
 import pl.kamil.domain.algorithm.sa.eval.func.EvalFunc;
 import pl.kamil.domain.model.Point;
-import pl.kamil.domain.model.UInt16;
 import pl.kamil.domain.service.RandomNumbers;
 import pl.kamil.domain.service.RepresentationConversionService;
 
@@ -10,12 +9,14 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.DoubleStream;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public class Kolokwium {
     private final RandomNumbers rn;
     private final RepresentationConversionService rcs;
-    private final int EVAL_FUNC_INVOKES = 10_000;
+    private int eval_func_invokes = 10_000;
     private final int POPULATION_SIZE = 100;
 
     public Kolokwium(RandomNumbers rn, RepresentationConversionService rcs) {
@@ -23,20 +24,46 @@ public class Kolokwium {
         this.rcs = rcs;
     }
 
-    public void runTask(Integer dim, int execNum, double xMin, double xMax, EvalFunc eFunc, Map<Integer, List<Double>> fxResults, boolean isBinary, Double optimum, Map<Integer, List<Double>> ECDF) {
+    public int[][] runTask(Integer dim, int execNum, double xMin, double xMax, EvalFunc eFunc, Map<Integer, List<Double>> fxResults, Double optimum, Map<Integer, List<Double>> ECDF) {
         double initialEval = Double.MAX_VALUE;
+        this.eval_func_invokes = eval_func_invokes * dim;
+        List<Integer> invokeThresholds = new ArrayList<>();
+        List<Double> qualityThresholds = new ArrayList<>();
+
+        // obliczenie progów
+        evaluateInvokeThresholds(invokeThresholds, dim);
+        evaluateQualityThresholds(qualityThresholds);
+
+        int[][] thresholdValues = new int[invokeThresholds.size()][qualityThresholds.size()];
+
         for (int i = 0; i < execNum; i++) {
-            executeAlgorithm(dim, xMin, xMax, eFunc, fxResults, initialEval, i, isBinary, optimum, ECDF);
+            List<Double> difference = executeAlgorithm(dim, xMin, xMax, eFunc, fxResults, initialEval, i, optimum, ECDF);
+
+            fun(difference, invokeThresholds, qualityThresholds, thresholdValues);
+        }
+        return thresholdValues;
+    }
+
+    private void fun(List<Double> difference, List<Integer> invokeThresholds, List<Double> qualityThresholds, int[][] thresholdValues) {
+        for (int i = 0; i < qualityThresholds.size(); i++) {
+            for (int j = 0; j < invokeThresholds.size(); j++) {
+                Integer index = invokeThresholds.get(j);
+                Double invokeT = difference.get(index - 1);
+                if (invokeT < qualityThresholds.get(qualityThresholds.size()-1-i)) {
+                    thresholdValues[j][i] += 1;
+                }
+            }
         }
     }
 
-    private void executeAlgorithm(Integer dim, double xMin, double xMax,
-                                  EvalFunc eFunc, Map<Integer, List<Double>> fxResults,
-                                  double initialEval, int i, boolean isBinary,
-                                  Double optimum, Map<Integer, List<Double>> ECDF) {
+    private List<Double> executeAlgorithm(Integer dim, double xMin, double xMax,
+                                          EvalFunc eFunc, Map<Integer, List<Double>> fxResults,
+                                          double initialEval, int i,
+                                          Double optimum, Map<Integer, List<Double>> ECDF) {
         List<Double> ecdfPerAlgorithm = new ArrayList<>();
         List<Double> result = new ArrayList<>();
         List<Point> population = new ArrayList<>();
+
         // obliczenie poczatkowej sigmy ale do poczatkowej populacji nie trzeba jej zapisywac (nie uczestniczy w mutacji) dopiero do dzieci
         double initialSigma = (xMax - xMin) * 0.05;
 
@@ -49,16 +76,12 @@ public class Kolokwium {
         double eval = initialEval;
         eval = addEvalToResult(populationEvaluation, eval, result, optimum, ecdfPerAlgorithm);
 
-        for (int j = 0; j < (EVAL_FUNC_INVOKES - POPULATION_SIZE) / POPULATION_SIZE; j++) {
+        for (int j = 0; j < (eval_func_invokes - POPULATION_SIZE) / POPULATION_SIZE; j++) {
             //  turniej, w którym będzie t tur losowania l wartosci, z ktorych najlepsza zostanie wyselekcjonowana jako rodzic tworzac grupe rodzicow
             // gdzie t to tyle co populacja, a l to liczba losowo wybranych wartosci
             int t = POPULATION_SIZE;
             int l = 2;
             List<Point> parents = select(t, l, populationEvaluation, population);
-            // przed rekombinacja dla reprezentacji binarnej zmieniamy punkty na binarne
-            if (isBinary) {
-                parents.forEach(Point::toUInt16);
-            }
 
             // rekombinacja
             int k = 3;
@@ -68,10 +91,7 @@ public class Kolokwium {
             children.forEach(p -> p.setSigma(initialSigma));
             // mutacja
             mutation(children, dim);
-            // po mutacji  dla reprezentacji binarnej zmieniamy punkty z binarnych na rzeczywistoliczbowe
-            if (isBinary) {
-                children.forEach(Point::fromUInt16toDomain);
-            }
+
             // ewaluacja dzieci
             Map<Point, Double> childrenEvaluation = evaluate(eFunc, children);
             eval = addEvalToResult(childrenEvaluation, eval, result, optimum, ecdfPerAlgorithm);
@@ -80,7 +100,29 @@ public class Kolokwium {
         }
         fxResults.put(i, result);
         ECDF.put(i, ecdfPerAlgorithm);
+        return ecdfPerAlgorithm;
     }
+
+
+    private void evaluateInvokeThresholds(List<Integer> invokeThresholds, Integer dim) {
+        List<Double> exponent = DoubleStream.iterate(0.0, x -> x + 0.1)
+                .limit(41).boxed().toList();
+        List<Integer> thresholds = exponent.stream()
+                .map(ex -> (int) Math.round(dim * Math.pow(10, ex)))
+                .toList();
+        invokeThresholds.addAll(thresholds);
+    }
+
+    private void evaluateQualityThresholds(List<Double> qualityThresholds) {
+        List<Double> thresholds = IntStream.range(0, 51)
+                .mapToDouble(i -> -8.0 + i * 0.2)
+                .map(x -> Math.pow(10, x))
+                .boxed()
+                .toList();
+
+        qualityThresholds.addAll(thresholds);
+    }
+
 
     private static Map<Point, Double> evaluate(EvalFunc eFunc, List<Point> data) {
         return data.stream().collect(Collectors.toMap(

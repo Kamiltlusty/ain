@@ -35,6 +35,23 @@ public class TXTExport implements DataExport {
     }
 
     @Override
+    public void save(int[][] ecdfValues, String fileName) {
+        try (var writer = new BufferedWriter(new FileWriter(fileName + ".txt"))) {
+            for (int i = 0; i < ecdfValues.length; i++) {
+                for (int j = 0; j < ecdfValues[i].length; j++) {
+                    writer.write(String.format("%d", ecdfValues[i][j]));
+                    if (j < ecdfValues[i].length - 1) {
+                        writer.write(" ");
+                    }
+                }
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
     public void save(List<Double> data, String fileName) {
         try (var writer = new BufferedWriter(new FileWriter(fileName + ".txt"))) {
             for (int i = 0; i < data.size(); i++) {
