@@ -11,7 +11,6 @@ public class Salomon implements EvalFunc {
         double norm = Math.sqrt(
                 p.getCoords().stream().mapToDouble(c -> c*c).sum()
         );
-        norm = Math.sqrt(norm);
         fx = -Math.cos(2.0*Math.PI * norm) + 0.1 * norm + 1;
         return fx;
     }
