@@ -17,14 +17,17 @@ public class Kolokwium {
     private final RandomNumbers rn;
     private final RepresentationConversionService rcs;
     private int eval_func_invokes = 10_000;
-    private final int POPULATION_SIZE = 100;
 
     public Kolokwium(RandomNumbers rn, RepresentationConversionService rcs) {
         this.rn = rn;
         this.rcs = rcs;
     }
 
-    public int[][] runTask(Integer dim, int execNum, double xMin, double xMax, EvalFunc eFunc, Map<Integer, List<Double>> fxResults, Double optimum, Map<Integer, List<Double>> ECDF) {
+    public int[][] runTask(Integer dim, int execNum, int population_size, double xMin,
+                           double xMax, EvalFunc eFunc, double wi,
+                           Map<Integer, List<Double>> fxResults,
+                           Double optimum, Map<Integer, List<Double>> ECDF)
+    {
         double initialEval = Double.MAX_VALUE;
         this.eval_func_invokes = eval_func_invokes * dim;
         List<Integer> invokeThresholds = new ArrayList<>();
@@ -37,14 +40,14 @@ public class Kolokwium {
         int[][] thresholdValues = new int[invokeThresholds.size()][qualityThresholds.size()];
 
         for (int i = 0; i < execNum; i++) {
-            List<Double> difference = executeAlgorithm(dim, xMin, xMax, eFunc, fxResults, initialEval, i, optimum, ECDF);
+            List<Double> difference = executeAlgorithm(dim, population_size, xMin, xMax, eFunc, wi, fxResults, initialEval, i, optimum, ECDF);
 
-            fun(difference, invokeThresholds, qualityThresholds, thresholdValues);
+            ecdfChartDataGenerator(difference, invokeThresholds, qualityThresholds, thresholdValues);
         }
         return thresholdValues;
     }
 
-    private void fun(List<Double> difference, List<Integer> invokeThresholds, List<Double> qualityThresholds, int[][] thresholdValues) {
+    private void ecdfChartDataGenerator(List<Double> difference, List<Integer> invokeThresholds, List<Double> qualityThresholds, int[][] thresholdValues) {
         for (int i = 0; i < qualityThresholds.size(); i++) {
             for (int j = 0; j < invokeThresholds.size(); j++) {
                 Integer index = invokeThresholds.get(j);
@@ -56,8 +59,8 @@ public class Kolokwium {
         }
     }
 
-    private List<Double> executeAlgorithm(Integer dim, double xMin, double xMax,
-                                          EvalFunc eFunc, Map<Integer, List<Double>> fxResults,
+    private List<Double> executeAlgorithm(Integer dim, int population_size, double xMin, double xMax,
+                                          EvalFunc eFunc, double wi, Map<Integer, List<Double>> fxResults,
                                           double initialEval, int i,
                                           Double optimum, Map<Integer, List<Double>> ECDF) {
         List<Double> ecdfPerAlgorithm = new ArrayList<>();
@@ -68,18 +71,18 @@ public class Kolokwium {
         double initialSigma = (xMax - xMin) * 0.05;
 
         // generowanie populacji (punktów w dziedzinie) i wypelnienie wymiarow losowymi wartosciami
-        generatePopulation(dim, xMin, xMax, population);
+        generatePopulation(dim, xMin, xMax, population, population_size);
 
         // zastosowanie funkcji ewaluacji na populacji i utworznie mapy chromosom:ewaluacja
-        Map<Point, Double> populationEvaluation = evaluate(eFunc, population);
+        Map<Point, Double> populationEvaluation = evaluate(eFunc, population, wi, xMin, xMax);
 
         double eval = initialEval;
         eval = addEvalToResult(populationEvaluation, eval, result, optimum, ecdfPerAlgorithm);
 
-        for (int j = 0; j < (eval_func_invokes - POPULATION_SIZE) / POPULATION_SIZE; j++) {
+        for (int j = 0; j < (eval_func_invokes - population_size) / population_size; j++) {
             //  turniej, w którym będzie t tur losowania l wartosci, z ktorych najlepsza zostanie wyselekcjonowana jako rodzic tworzac grupe rodzicow
             // gdzie t to tyle co populacja, a l to liczba losowo wybranych wartosci
-            int t = POPULATION_SIZE;
+            int t = population_size;
             int l = 2;
             List<Point> parents = select(t, l, populationEvaluation, population);
 
@@ -93,10 +96,10 @@ public class Kolokwium {
             mutation(children, dim);
 
             // ewaluacja dzieci
-            Map<Point, Double> childrenEvaluation = evaluate(eFunc, children);
+            Map<Point, Double> childrenEvaluation = evaluate(eFunc, children, wi, xMin, xMax);
             eval = addEvalToResult(childrenEvaluation, eval, result, optimum, ecdfPerAlgorithm);
             // zamiana - wybieram lepszego z populacji rodziców (populationEvaluation) i dzieci i zapisuje do populationEvaluation
-            replace(population, populationEvaluation, children, childrenEvaluation);
+            replace(population, populationEvaluation, children, childrenEvaluation, population_size);
         }
         fxResults.put(i, result);
         ECDF.put(i, ecdfPerAlgorithm);
@@ -124,15 +127,31 @@ public class Kolokwium {
     }
 
 
-    private static Map<Point, Double> evaluate(EvalFunc eFunc, List<Point> data) {
+    private static Map<Point, Double> evaluate(EvalFunc eFunc, List<Point> data, double wi, double xMin, double xMax) {
+
+
         return data.stream().collect(Collectors.toMap(
                 key -> key,
-                eFunc::evalFunc));
+                p -> eFunc.evalFunc(p) + constraintPenalizing(p, wi, xMin, xMax)));
     }
 
-    private void generatePopulation(Integer dim, double xMin, double xMax, List<Point> population) {
+    private static double constraintPenalizing(Point p, double wi, double xMin, double xMax) {
+        double penalty = 0.0;
+
+        for (double xi : p.getCoords()) {
+            if (xi < xMin) {
+                penalty += wi * (xMin - xi);
+            } else if (xi > xMax) {
+                penalty += wi * (xi - xMax);
+            }
+        }
+
+        return penalty;
+    }
+
+    private void generatePopulation(Integer dim, double xMin, double xMax, List<Point> population, int population_size) {
         List<Point> pointsTmp = Stream.generate(() -> new Point(rcs))
-                .limit(POPULATION_SIZE)
+                .limit(population_size)
                 .toList();
 
         pointsTmp.forEach(p -> p.fillCoordsWithRandValsFromDomain(dim, xMin, xMax));
@@ -218,8 +237,10 @@ public class Kolokwium {
     private void replace(List<Point> population,
                          Map<Point, Double> populationEvaluation,
                          List<Point> children,
-                         Map<Point, Double> childrenEvaluation) {
-        for (int i = 0; i < POPULATION_SIZE; i++) {
+                         Map<Point, Double> childrenEvaluation,
+                         int population_size
+    ) {
+        for (int i = 0; i < population_size; i++) {
             Point parent = population.get(i);
             Double parentFitness = populationEvaluation.get(parent);
 

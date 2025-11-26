@@ -5,8 +5,6 @@ import pl.kamil.application.ports.DataExport;
 import pl.kamil.application.usecases.LocalSearchUseCase;
 import pl.kamil.domain.algorithm.Kolokwium;
 import pl.kamil.domain.algorithm.ga.GeneticAlgorithm;
-import pl.kamil.domain.algorithm.ls.eval.func.Rosenbrock;
-import pl.kamil.domain.algorithm.sa.eval.func.TestFunc1;
 import pl.kamil.domain.algorithm.sa.eval.func.TestFunc2;
 import pl.kamil.domain.eval.func.GeneralizedRosenbrock;
 import pl.kamil.domain.model.Point;
@@ -110,17 +108,19 @@ public class Main {
     public static void kolokwium(RandomNumbers rn) {
         var dim = 5;
         var execNum = 100;
+        int population_size = 100;
         var xMin = -30;
         var xMax = 30;
         Double optimum = 0.0;
+        var wi = 100.0; // koszt naruszenia ograniczeń
         final Map<Integer, List<Double>> fxResults = new TreeMap<>();
         final Map<Integer, List<Double>> ECDF = new TreeMap<>();
         DataExport txtExp = new TXTExport();
         var k = new Kolokwium(rn, new RepresentationConversionService(xMin, xMax));
 
-        int[][] ecdfValues = k.runTask(dim, execNum, xMin, xMax, new GeneralizedRosenbrock(), fxResults, optimum, ECDF);
-//        txtExp.save(fxResults, "ROSENBROCK_BINARY");
-//        txtExp.save(ECDF, "ECDF_ROSENBROCK_BINARY");
+        int[][] ecdfValues = k.runTask(dim, execNum, population_size, xMin, xMax, new GeneralizedRosenbrock(), wi, fxResults, optimum, ECDF);
+        txtExp.save(fxResults, "ROSENBROCK_REAL");
+        txtExp.save(ECDF, "ECDF_ROSENBROCK_REAL");
         txtExp.save(ecdfValues, "Wartosci_do_wykresu_ecdf");
     }
 
