@@ -7,6 +7,8 @@ import pl.kamil.domain.algorithm.Kolokwium;
 import pl.kamil.domain.algorithm.ga.GeneticAlgorithm;
 import pl.kamil.domain.algorithm.sa.eval.func.TestFunc2;
 import pl.kamil.domain.eval.func.GeneralizedRosenbrock;
+import pl.kamil.domain.eval.func.Salomon;
+import pl.kamil.domain.eval.func.Whitley;
 import pl.kamil.domain.model.Point;
 import pl.kamil.domain.service.*;
 import pl.kamil.domain.algorithm.ls.LocalSearch;
@@ -127,6 +129,10 @@ public class Main {
         txtExp.save(fxResults, "ROSENBROCK_REAL");
         txtExp.save(ECDF, "ECDF_ROSENBROCK_REAL");
         txtExp.save(ecdfValues, "Wartosci_do_wykresu_ecdf");
+
+        kolokwium.generateGridData2D(new GeneralizedRosenbrock(), -30, 30, 100, "rosenbrock.txt");
+        kolokwium.generateGridData2D(new Salomon(), -100, 100, 100, "salomon.txt");
+        kolokwium.generateGridData2D(new Whitley(), -10.24, 10.24, 100, "whitley.txt");
     }
 
     public static void main(String[] args) {
