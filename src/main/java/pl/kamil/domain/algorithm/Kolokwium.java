@@ -273,4 +273,39 @@ public class Kolokwium {
             }
         }
     }
+
+    /**
+     * Generuje dane funkcji dwuwymiarowej (siatkę punktów) i zapisuje je do pliku.
+     * @param eFunc    funkcja ewaluacji przyjmująca punkt 2D
+     * @param xMin     minimalna wartość w domenie
+     * @param xMax     maksymalna wartość w domenie
+     * @param gridSize liczba punktów w każdym wymiarze siatki (gridSize x gridSize)
+     * @param fileName nazwa pliku wyjściowego
+     */
+    public void generateGridData2D(EvalFunc eFunc, double xMin, double xMax, int gridSize, String fileName) {
+        // Obliczenie kroku siatki – równomierny rozkład między xMin a xMax
+        double step = (xMax - xMin) / (gridSize - 1);
+        try (java.io.PrintWriter writer = new java.io.PrintWriter(fileName)) {
+            // Iteracja po wszystkich punktach siatki
+            for (int i = 0; i < gridSize; i++) {
+                for (int j = 0; j < gridSize; j++) {
+                    // Wyliczenie współrzędnych aktualnego punktu
+                    double x = xMin + i * step;
+                    double y = xMin + j * step;
+
+                    // Utworzenie punktu reprezentowanego przez obiekt Point
+                    Point p = new Point(rcs);
+                    p.setCoords(List.of(x, y));
+
+                    // Wywołanie funkcji ewaluacji dla punktu (x, y)
+                    double value = eFunc.evalFunc(p);
+
+                    // Zapis wyniku do pliku w formacie: x y f(x, y)
+                    writer.println(x + " " + y + " " + value);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
 }

@@ -129,6 +129,10 @@ public class Main {
         txtExp.save(fxResults, "ROSENBROCK_REAL");
         txtExp.save(ECDF, "ECDF_ROSENBROCK_REAL");
         txtExp.save(ecdfValues, "Wartosci_do_wykresu_ecdf");
+
+        kolokwium.generateGridData2D(new GeneralizedRosenbrock(), -30, 30, 100, "rosenbrock.txt");
+        kolokwium.generateGridData2D(new Salomon(), -100, 100, 100, "salomon.txt");
+        kolokwium.generateGridData2D(new Whitley(), -10.24, 10.24, 100, "whitley.txt");
     }
 
     public static void main(String[] args) {
