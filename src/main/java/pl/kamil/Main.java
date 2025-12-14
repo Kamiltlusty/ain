@@ -1,14 +1,9 @@
 package pl.kamil;
 
 import pl.kamil.application.DistributionService;
-import pl.kamil.application.ports.DataExport;
 import pl.kamil.application.usecases.LocalSearchUseCase;
-import pl.kamil.domain.algorithm.Kolokwium;
 //import pl.kamil.domain.algorithm.ga.GeneticAlgorithm;
-import pl.kamil.domain.algorithm.sa.eval.func.TestFunc2;
-import pl.kamil.domain.eval.func.GeneralizedRosenbrock;
-import pl.kamil.domain.eval.func.Salomon;
-import pl.kamil.domain.eval.func.Whitley;
+import pl.kamil.domain.algorithm.Naive;
 import pl.kamil.domain.model.Point;
 import pl.kamil.domain.service.*;
 import pl.kamil.domain.algorithm.ls.LocalSearch;
@@ -19,8 +14,7 @@ import pl.kamil.infrastructure.adapters.TXTExport;
 import pl.kamil.infrastructure.services.DataProcessor;
 
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.stream.Stream;
 
 public class Main {
     public static void lab1(RandomlyGeneratedNumbers rn) {
@@ -107,36 +101,55 @@ public class Main {
 //        txtExp.save(ECDF, "ECDF_FUNCTION2_REAL");
 //    }
 
-    public static void kolokwium(RandomNumbers rn) {
-        var dim = 30;
-        var execNum = 100;
-        var xMin = -10.24;
-        var xMax = 10.24;
-        Double optimum = 0.0;
-        int population_size = 1000;
-        var alpha = 0.001;
-        var k = 2; // liczba rodzicow do rekombinacji
-        var wi = 200.0; // koszt naruszenia ograniczeń
-        var l = 2; // liczba uczestnikow turnieju
+//    public static void kolokwium(RandomNumbers rn) {
+//        var dim = 30;
+//        var execNum = 100;
+//        var xMin = -10.24;
+//        var xMax = 10.24;
+//        Double optimum = 0.0;
+//        int population_size = 1000;
+//        var alpha = 0.001;
+//        var k = 2; // liczba rodzicow do rekombinacji
+//        var wi = 200.0; // koszt naruszenia ograniczeń
+//        var l = 2; // liczba uczestnikow turnieju
+//
+//        final Map<Integer, List<Double>> fxResults = new TreeMap<>();
+//        final Map<Integer, List<Double>> ECDF = new TreeMap<>();
+//        DataExport txtExp = new TXTExport();
+//        var kolokwium = new Kolokwium(rn, new RepresentationConversionService(xMin, xMax));
+//
+//        int[][] ecdfValues = kolokwium.runTask(dim, execNum, population_size, xMin, xMax,
+//                new Whitley(), wi, fxResults, optimum, ECDF, k, alpha, l);
+//        txtExp.save(fxResults, "ROSENBROCK_REAL");
+//        txtExp.save(ECDF, "ECDF_ROSENBROCK_REAL");
+//        txtExp.save(ecdfValues, "Wartosci_do_wykresu_ecdf");
+//
+//        kolokwium.generateGridData2D(new GeneralizedRosenbrock(), -30, 30, 100, "rosenbrock.txt");
+//        kolokwium.generateGridData2D(new Salomon(), -100, 100, 100, "salomon.txt");
+//        kolokwium.generateGridData2D(new Whitley(), -10.24, 10.24, 100, "whitley.txt");
+//    }
 
-        final Map<Integer, List<Double>> fxResults = new TreeMap<>();
-        final Map<Integer, List<Double>> ECDF = new TreeMap<>();
-        DataExport txtExp = new TXTExport();
-        var kolokwium = new Kolokwium(rn, new RepresentationConversionService(xMin, xMax));
+    public static void lab8() {
+        var rng = new RandomlyGeneratedNumbers();
+        // tworzę punkty
+        List<Point> points2dim = Stream.generate(Point::new).limit(100).toList();
+        List<Point> points5dim = Stream.generate(Point::new).limit(1000).toList();
 
-        int[][] ecdfValues = kolokwium.runTask(dim, execNum, population_size, xMin, xMax,
-                new Whitley(), wi, fxResults, optimum, ECDF, k, alpha, l);
-        txtExp.save(fxResults, "ROSENBROCK_REAL");
-        txtExp.save(ECDF, "ECDF_ROSENBROCK_REAL");
-        txtExp.save(ecdfValues, "Wartosci_do_wykresu_ecdf");
+        // generuję im wartości losowe w przestrzeni dwukryterialnej czyli takie co mają dwa wymiary
+        points2dim.forEach(p -> p.setCoords(List.of(rng.nextDouble(), rng.nextDouble())));
+        // przestrzeń 5 kryterialna
+        points5dim.forEach(p -> p.setCoords(List.of(
+                rng.nextDouble(), rng.nextDouble(), rng.nextDouble(), rng.nextDouble(), rng.nextDouble()))
+        );
 
-        kolokwium.generateGridData2D(new GeneralizedRosenbrock(), -30, 30, 100, "rosenbrock.txt");
-        kolokwium.generateGridData2D(new Salomon(), -100, 100, 100, "salomon.txt");
-        kolokwium.generateGridData2D(new Whitley(), -10.24, 10.24, 100, "whitley.txt");
+        Naive naive = new Naive();
+        List<Point> nondominated2dim = naive.runExperiment(points2dim);
+        List<Point> nondominated5dim = naive.runExperiment(points5dim);
     }
+
 
     public static void main(String[] args) {
         var rn = new RandomlyGeneratedNumbers();
-        kolokwium(rn);
+        lab8();
     }
 }

@@ -16,6 +16,11 @@ public class RandomlyGeneratedNumbers implements RandomNumbers {
     }
 
     @Override
+    public double nextDouble() {
+        return rg.nextDouble();
+    }
+
+    @Override
     public double nextDouble(double upperBoundExclusive) {
         return rg.nextDouble(upperBoundExclusive);
     }

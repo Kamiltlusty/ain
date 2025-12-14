@@ -13,6 +13,11 @@ public class Point {
     private List<Double> sigmas;
     private final RepresentationConversionService rcs;
 
+    // konstruktor do algorytmów pareto
+    public Point() {
+        this.rcs = null;
+    }
+
     public Point(List<Double> coords, RepresentationConversionService rcs) {
         this.coords = coords;
         this.rcs = rcs;
