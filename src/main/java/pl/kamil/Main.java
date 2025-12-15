@@ -4,6 +4,7 @@ import pl.kamil.application.DistributionService;
 import pl.kamil.application.usecases.LocalSearchUseCase;
 //import pl.kamil.domain.algorithm.ga.GeneticAlgorithm;
 import pl.kamil.domain.algorithm.Naive;
+import pl.kamil.domain.algorithm.Kung;
 import pl.kamil.domain.model.Point;
 import pl.kamil.domain.service.*;
 import pl.kamil.domain.algorithm.ls.LocalSearch;
@@ -142,9 +143,55 @@ public class Main {
                 rng.nextDouble(), rng.nextDouble(), rng.nextDouble(), rng.nextDouble(), rng.nextDouble()))
         );
 
+        // Test algorytmu naiwnego
         Naive naive = new Naive();
-        List<Point> nondominated2dim = naive.runExperiment(points2dim);
-        List<Point> nondominated5dim = naive.runExperiment(points5dim);
+        List<Point> nondominated2dimNaive = naive.runExperiment(points2dim);
+        List<Point> nondominated5dimNaive = naive.runExperiment(points5dim);
+
+        System.out.println("Algorytm naiwny");
+        System.out.println("2D: " + nondominated2dimNaive.size() + " punktow niezdominowanych z " + points2dim.size());
+        System.out.println("5D: " + nondominated5dimNaive.size() + " punktow niezdominowanych z " + points5dim.size());
+
+        // Test algorytmu Kung'a
+        Kung kung = new Kung();
+        List<Point> nondominated2dimKung = kung.runExperiment(points2dim);
+        List<Point> nondominated5dimKung = kung.runExperiment(points5dim);
+
+        System.out.println("\nAlgorytm Kung'a");
+        System.out.println("2D: " + nondominated2dimKung.size() + " punktow niezdominowanych z " + points2dim.size());
+        System.out.println("5D: " + nondominated5dimKung.size() + " punktow niezdominowanych z " + points5dim.size());
+
+        System.out.println("\nPorownanie wynikow");
+
+        System.out.println("\nPomiar czasu wykonania");
+
+        // Dla 2D
+        long startTime = System.nanoTime();
+        naive.runExperiment(points2dim);
+        long naiveTime2D = System.nanoTime() - startTime;
+
+        startTime = System.nanoTime();
+        kung.runExperiment(points2dim);
+        long kungTime2D = System.nanoTime() - startTime;
+
+        // Dla 5D
+        startTime = System.nanoTime();
+        naive.runExperiment(points5dim);
+        long naiveTime5D = System.nanoTime() - startTime;
+
+        startTime = System.nanoTime();
+        kung.runExperiment(points5dim);
+        long kungTime5D = System.nanoTime() - startTime;
+
+        System.out.println("Czas wykonania dla 2D:");
+        System.out.println("  Naiwny: " + naiveTime2D / 1000000.0 + " ms");
+        System.out.println("  Kung:   " + kungTime2D / 1000000.0 + " ms");
+        System.out.println("  Przyspieszenie: " + (double)naiveTime2D/kungTime2D + "x");
+
+        System.out.println("\nCzas wykonania dla 5D:");
+        System.out.println("  Naiwny: " + naiveTime5D / 1000000.0 + " ms");
+        System.out.println("  Kung:   " + kungTime5D / 1000000.0 + " ms");
+        System.out.println("  Przyspieszenie: " + (double)naiveTime5D/kungTime5D + "x");
     }
 
 
