@@ -11,9 +11,11 @@ import pl.kamil.domain.algorithm.ls.LocalSearch;
 import pl.kamil.domain.algorithm.NbhdFunc;
 import pl.kamil.domain.algorithm.ls.eval.func.Spherical;
 import pl.kamil.infrastructure.adapters.ExcelExport;
+import pl.kamil.infrastructure.adapters.SaveNonDominatedAndDominatedPointsImpl;
 import pl.kamil.infrastructure.adapters.TXTExport;
 import pl.kamil.infrastructure.services.DataProcessor;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -152,6 +154,12 @@ public class Main {
         System.out.println("2D: " + nondominated2dimNaive.size() + " punktow niezdominowanych z " + points2dim.size());
         System.out.println("5D: " + nondominated5dimNaive.size() + " punktow niezdominowanych z " + points5dim.size());
 
+        // usuniecie z Listy wszystkich punktów punktów niezdominowanych w celu uzyskania punktów zdominowanych
+        List<Point> dominated2dimNaive = new ArrayList<>(points2dim);
+        List<Point> dominated5dimNaive = new ArrayList<>(points5dim);
+        dominated2dimNaive.removeAll(nondominated2dimNaive);
+        dominated5dimNaive.removeAll(nondominated5dimNaive);
+
         // Test algorytmu Kung'a
         Kung kung = new Kung();
         List<Point> nondominated2dimKung = kung.runExperiment(points2dim);
@@ -161,10 +169,30 @@ public class Main {
         System.out.println("2D: " + nondominated2dimKung.size() + " punktow niezdominowanych z " + points2dim.size());
         System.out.println("5D: " + nondominated5dimKung.size() + " punktow niezdominowanych z " + points5dim.size());
 
+        // usuniecie z Listy wszystkich punktów punktów niezdominowanych w celu uzyskania punktów zdominowanych
+        List<Point> dominated2dimKung = new ArrayList<>(points2dim);
+        List<Point> dominated5dimKung = new ArrayList<>(points5dim);
+        dominated2dimNaive.removeAll(nondominated2dimKung);
+        dominated5dimNaive.removeAll(nondominated5dimKung);
+
+        var saveNdomAndDom = new SaveNonDominatedAndDominatedPointsImpl();
+        saveNdomAndDom.save(nondominated2dimNaive,
+                dominated2dimNaive,
+                "punkty2",
+                false
+        );
+        saveNdomAndDom.save(nondominated5dimNaive,
+                dominated5dimNaive,
+                "punkty5",
+                false);
+
         System.out.println("\nPorownanie wynikow");
 
-        System.out.println("\nPomiar czasu wykonania");
+        testOfTime(naive, points2dim, kung, points5dim);
+    }
 
+    private static void testOfTime(Naive naive, List<Point> points2dim, Kung kung, List<Point> points5dim) {
+        System.out.println("\nPomiar czasu wykonania");
         // Dla 2D
         long startTime = System.nanoTime();
         naive.runExperiment(points2dim);
@@ -186,12 +214,12 @@ public class Main {
         System.out.println("Czas wykonania dla 2D:");
         System.out.println("  Naiwny: " + naiveTime2D / 1000000.0 + " ms");
         System.out.println("  Kung:   " + kungTime2D / 1000000.0 + " ms");
-        System.out.println("  Przyspieszenie: " + (double)naiveTime2D/kungTime2D + "x");
+        System.out.println("  Przyspieszenie: " + (double) naiveTime2D / kungTime2D + "x");
 
         System.out.println("\nCzas wykonania dla 5D:");
         System.out.println("  Naiwny: " + naiveTime5D / 1000000.0 + " ms");
         System.out.println("  Kung:   " + kungTime5D / 1000000.0 + " ms");
-        System.out.println("  Przyspieszenie: " + (double)naiveTime5D/kungTime5D + "x");
+        System.out.println("  Przyspieszenie: " + (double) naiveTime5D / kungTime5D + "x");
     }
 
 
