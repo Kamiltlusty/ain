@@ -17,7 +17,14 @@ import pl.kamil.infrastructure.services.DataProcessor;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Stream;
+
+import java.io.BufferedWriter;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.FileWriter;
+import java.io.FileReader;
 
 public class Main {
     public static void lab1(RandomlyGeneratedNumbers rn) {
@@ -134,13 +141,13 @@ public class Main {
 
     public static void lab8() {
         var rng = new RandomlyGeneratedNumbers();
-        // tworzę punkty
+
+        // Tworzę punkty
         List<Point> points2dim = Stream.generate(Point::new).limit(100).toList();
         List<Point> points5dim = Stream.generate(Point::new).limit(1000).toList();
 
-        // generuję im wartości losowe w przestrzeni dwukryterialnej czyli takie co mają dwa wymiary
+        // Generuję im wartości losowe
         points2dim.forEach(p -> p.setCoords(List.of(rng.nextDouble(), rng.nextDouble())));
-        // przestrzeń 5 kryterialna
         points5dim.forEach(p -> p.setCoords(List.of(
                 rng.nextDouble(), rng.nextDouble(), rng.nextDouble(), rng.nextDouble(), rng.nextDouble()))
         );
@@ -154,7 +161,7 @@ public class Main {
         System.out.println("2D: " + nondominated2dimNaive.size() + " punktow niezdominowanych z " + points2dim.size());
         System.out.println("5D: " + nondominated5dimNaive.size() + " punktow niezdominowanych z " + points5dim.size());
 
-        // usuniecie z Listy wszystkich punktów punktów niezdominowanych w celu uzyskania punktów zdominowanych
+        // Usuniecie z Listy wszystkich punktów punktów niezdominowanych w celu uzyskania punktów zdominowanych
         List<Point> dominated2dimNaive = new ArrayList<>(points2dim);
         List<Point> dominated5dimNaive = new ArrayList<>(points5dim);
         dominated2dimNaive.removeAll(nondominated2dimNaive);
@@ -169,11 +176,11 @@ public class Main {
         System.out.println("2D: " + nondominated2dimKung.size() + " punktow niezdominowanych z " + points2dim.size());
         System.out.println("5D: " + nondominated5dimKung.size() + " punktow niezdominowanych z " + points5dim.size());
 
-        // usuniecie z Listy wszystkich punktów punktów niezdominowanych w celu uzyskania punktów zdominowanych
+        // Usuniecie z Listy wszystkich punktów punktów niezdominowanych w celu uzyskania punktów zdominowanych
         List<Point> dominated2dimKung = new ArrayList<>(points2dim);
         List<Point> dominated5dimKung = new ArrayList<>(points5dim);
-        dominated2dimNaive.removeAll(nondominated2dimKung);
-        dominated5dimNaive.removeAll(nondominated5dimKung);
+        dominated2dimKung.removeAll(nondominated2dimKung);
+        dominated5dimKung.removeAll(nondominated5dimKung);
 
         var saveNdomAndDom = new SaveNonDominatedAndDominatedPointsImpl();
         saveNdomAndDom.save(nondominated2dimNaive,
@@ -186,11 +193,137 @@ public class Main {
                 "punkty5",
                 false);
 
-        System.out.println("\nPorownanie wynikow");
+        // Fronty niedominowane
+        System.out.println("\nZnajdowanie kolejnych frontow");
 
+        // Plik z moodle ma tabulatory jako separatory
+        List<Point> moodlePoints = readPointsFromFile("MO-D3R.txt");
+        System.out.println("Wczytano " + moodlePoints.size() + " punktow z pliku");
+
+        if (moodlePoints.isEmpty()) {
+            System.out.println("BŁĄD: Nie wczytano żadnych punktow. Sprawdź format pliku.");
+            return;
+        }
+
+        // Algorytm do znajdowania kolejnych frontów
+        List<List<Point>> allFronts = findConsecutiveFronts(moodlePoints, new Kung()); // lub new Naive()
+
+        System.out.println("Znaleziono " + allFronts.size() + " frontow niedominowanych");
+
+        // Eksport danych
+        exportFronts(allFronts);
+
+        System.out.println("\nDane zostaly zapisane do plikow:");
+        System.out.println("1. fronty_MO-D3R.txt - dane wszystkich frontow");
+
+        System.out.println("\nPorownanie wynikow");
         testOfTime(naive, points2dim, kung, points5dim);
     }
 
+    // Wczytuje punkty dwukryterialne z pliku tekstowego, obsługując tabulatory lub spacje jako separatory
+    private static List<Point> readPointsFromFile(String filename) {
+        List<Point> points = new ArrayList<>();
+        try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
+            String line;
+            boolean isFirstLine = true;
+
+            while ((line = br.readLine()) != null) {
+                line = line.trim();
+
+                // Pomijaj puste linie i linie zaczynające się od komentarza
+                if (line.isEmpty() || line.startsWith("#")) {
+                    continue;
+                }
+
+                // Sprawdza czy linia zawiera tylko liczby
+                if (isFirstLine) {
+                    if (line.matches(".*[a-zA-Z].*")) {
+                        isFirstLine = false;
+                        continue;
+                    }
+                    isFirstLine = false;
+                }
+
+                // Używamy tabulatora lub spacji jako separatora
+                String[] parts = line.split("[\\t\\s]+"); // obsługuje zarowno tabulatory jak i spacje
+
+                if (parts.length >= 2) {
+                    try {
+                        double x = Double.parseDouble(parts[0].trim());
+                        double y = Double.parseDouble(parts[1].trim());
+                        Point point = new Point();
+                        point.setCoords(List.of(x, y));
+                        points.add(point);
+                    } catch (NumberFormatException e) {
+                        // Pomija linie które nie są liczbami
+                        System.err.println("Ostrzeżenie: Pominięto linię (nie liczby): " + line);
+                    }
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("Błąd podczas czytania pliku " + filename + ": " + e.getMessage());
+            // Jeśli plik nie istnieje, generuj przykładowe dane
+            System.out.println("Generuję przykładowe dane...");
+            RandomlyGeneratedNumbers localRng = new RandomlyGeneratedNumbers();
+            for (int i = 0; i < 100; i++) {
+                Point point = new Point();
+                point.setCoords(List.of(localRng.nextDouble(), localRng.nextDouble()));
+                points.add(point);
+            }
+        }
+        return points;
+    }
+
+    // Znajduje kolejne fronty Pareto poprzez iteracyjne usuwanie aktualnie niezdominowanych punktów
+    private static List<List<Point>> findConsecutiveFronts(List<Point> allPoints, pl.kamil.domain.algorithm.ParetoAlgorithm algorithm) {
+        List<List<Point>> allFronts = new ArrayList<>();
+        List<Point> remainingPoints = new ArrayList<>(allPoints);
+        int frontNumber = 1;
+
+        while (!remainingPoints.isEmpty()) {
+            // Znajdź front niezdominowany dla obecnych punktów
+            List<Point> currentFront = algorithm.runExperiment(remainingPoints);
+
+            if (currentFront.isEmpty()) {
+                break;
+            }
+
+            System.out.println("Front " + frontNumber + ": " + currentFront.size() + " punktow");
+            allFronts.add(new ArrayList<>(currentFront));
+
+            // Usuń znaleziony front z pozostałych punktów
+            remainingPoints.removeAll(currentFront);
+            frontNumber++;
+        }
+
+        return allFronts;
+    }
+
+    // Zapisuje wszystkie fronty Pareto do pliku tekstowego
+    private static void exportFronts(List<List<Point>> allFronts) {
+        TXTExport txtExport = new TXTExport();
+        List<Double> frontNumbers = new ArrayList<>();
+        List<Double> xCoords = new ArrayList<>();
+        List<Double> yCoords = new ArrayList<>();
+
+        for (int frontIndex = 0; frontIndex < allFronts.size(); frontIndex++) {
+            List<Point> front = allFronts.get(frontIndex);
+            int frontNumber = frontIndex + 1;
+
+            for (Point point : front) {
+                List<Double> coords = point.getCoords();
+                if (coords.size() >= 2) {
+                    frontNumbers.add((double) frontNumber);
+                    xCoords.add(coords.get(0));
+                    yCoords.add(coords.get(1));
+                }
+            }
+        }
+
+        txtExport.save(frontNumbers, xCoords, yCoords, "fronty_MO-D3R");
+    }
+
+    // Porównuje wydajność czasową algorytmów Naive i Kung dla zbiorów 2D i 5D
     private static void testOfTime(Naive naive, List<Point> points2dim, Kung kung, List<Point> points5dim) {
         System.out.println("\nPomiar czasu wykonania");
         // Dla 2D
@@ -221,7 +354,6 @@ public class Main {
         System.out.println("  Kung:   " + kungTime5D / 1000000.0 + " ms");
         System.out.println("  Przyspieszenie: " + (double) naiveTime5D / kungTime5D + "x");
     }
-
 
     public static void main(String[] args) {
         var rn = new RandomlyGeneratedNumbers();

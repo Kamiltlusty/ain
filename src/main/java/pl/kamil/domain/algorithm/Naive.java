@@ -5,7 +5,7 @@ import pl.kamil.domain.model.Point;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Naive {
+public class Naive implements ParetoAlgorithm {
 
     public List<Point> runExperiment(List<Point> points) {
         List<Point> nondominated = new ArrayList<>();

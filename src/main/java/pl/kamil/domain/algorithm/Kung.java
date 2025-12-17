@@ -5,7 +5,7 @@ import pl.kamil.domain.model.Point;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Kung {
+public class Kung implements ParetoAlgorithm {
     public List<Point> runExperiment(List<Point> points) {
         if (points == null || points.isEmpty()) {
             return new ArrayList<>();
