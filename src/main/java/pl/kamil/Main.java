@@ -5,19 +5,19 @@ import pl.kamil.application.usecases.LocalSearchUseCase;
 //import pl.kamil.domain.algorithm.ga.GeneticAlgorithm;
 import pl.kamil.domain.algorithm.Naive;
 import pl.kamil.domain.algorithm.Kung;
+import pl.kamil.domain.algorithm.Topic8Ex2;
 import pl.kamil.domain.model.Point;
 import pl.kamil.domain.service.*;
 import pl.kamil.domain.algorithm.ls.LocalSearch;
 import pl.kamil.domain.algorithm.NbhdFunc;
 import pl.kamil.domain.algorithm.ls.eval.func.Spherical;
+import pl.kamil.infrastructure.adapters.SaveFrontAndPointsImpl;
+import pl.kamil.infrastructure.adapters.WritePointsFromTopic8Ex2Impl;
 import pl.kamil.infrastructure.adapters.ExcelExport;
-import pl.kamil.infrastructure.adapters.SaveNonDominatedAndDominatedPointsImpl;
 import pl.kamil.infrastructure.adapters.TXTExport;
 import pl.kamil.infrastructure.services.DataProcessor;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Stream;
 
 public class Main {
     public static void lab1(RandomlyGeneratedNumbers rn) {
@@ -133,62 +133,63 @@ public class Main {
 //    }
 
     public static void lab8() {
-        var rng = new RandomlyGeneratedNumbers();
-        // tworzę punkty
-        List<Point> points2dim = Stream.generate(Point::new).limit(100).toList();
-        List<Point> points5dim = Stream.generate(Point::new).limit(1000).toList();
-
-        // generuję im wartości losowe w przestrzeni dwukryterialnej czyli takie co mają dwa wymiary
-        points2dim.forEach(p -> p.setCoords(List.of(rng.nextDouble(), rng.nextDouble())));
-        // przestrzeń 5 kryterialna
-        points5dim.forEach(p -> p.setCoords(List.of(
-                rng.nextDouble(), rng.nextDouble(), rng.nextDouble(), rng.nextDouble(), rng.nextDouble()))
-        );
-
-        // Test algorytmu naiwnego
+//        var rng = new RandomlyGeneratedNumbers();
+//        // tworzę punkty
+//        List<Point> points2dim = Stream.generate(Point::new).limit(100).toList();
+//        List<Point> points5dim = Stream.generate(Point::new).limit(1000).toList();
+//
+//        // generuję im wartości losowe w przestrzeni dwukryterialnej czyli takie co mają dwa wymiary
+//        points2dim.forEach(p -> p.setCoords(List.of(rng.nextDouble(), rng.nextDouble())));
+//        // przestrzeń 5 kryterialna
+//        points5dim.forEach(p -> p.setCoords(List.of(
+//                rng.nextDouble(), rng.nextDouble(), rng.nextDouble(), rng.nextDouble(), rng.nextDouble()))
+//        );
+//
+//        // Test algorytmu naiwnego
         Naive naive = new Naive();
-        List<Point> nondominated2dimNaive = naive.runExperiment(points2dim);
-        List<Point> nondominated5dimNaive = naive.runExperiment(points5dim);
+//        List<Point> nondominated2dimNaive = naive.runExperiment(points2dim);
+//        List<Point> nondominated5dimNaive = naive.runExperiment(points5dim);
+//
+//        System.out.println("Algorytm naiwny");
+//        System.out.println("2D: " + nondominated2dimNaive.size() + " punktow niezdominowanych z " + points2dim.size());
+//        System.out.println("5D: " + nondominated5dimNaive.size() + " punktow niezdominowanych z " + points5dim.size());
+//
+//        // usuniecie z Listy wszystkich punktów punktów niezdominowanych w celu uzyskania punktów zdominowanych
+//        List<Point> dominated2dimNaive = new ArrayList<>(points2dim);
+//        List<Point> dominated5dimNaive = new ArrayList<>(points5dim);
+//        dominated2dimNaive.removeAll(nondominated2dimNaive);
+//        dominated5dimNaive.removeAll(nondominated5dimNaive);
+//
+//        // Test algorytmu Kung'a
+//        Kung kung = new Kung();
+//        List<Point> nondominated2dimKung = kung.runExperiment(points2dim);
+//        List<Point> nondominated5dimKung = kung.runExperiment(points5dim);
+//
+//        System.out.println("\nAlgorytm Kung'a");
+//        System.out.println("2D: " + nondominated2dimKung.size() + " punktow niezdominowanych z " + points2dim.size());
+//        System.out.println("5D: " + nondominated5dimKung.size() + " punktow niezdominowanych z " + points5dim.size());
+//
+//        // usuniecie z Listy wszystkich punktów punktów niezdominowanych w celu uzyskania punktów zdominowanych
+//        List<Point> dominated2dimKung = new ArrayList<>(points2dim);
+//        List<Point> dominated5dimKung = new ArrayList<>(points5dim);
+//        dominated2dimKung.removeAll(nondominated2dimKung);
+//        dominated5dimKung.removeAll(nondominated5dimKung);
+//
+//        var saveNdomAndDom = new SaveNonDominatedAndDominatedPointsImpl();
+//        saveNdomAndDom.save(nondominated2dimNaive, dominated2dimNaive, "punkty2Naive", false);
+//        saveNdomAndDom.save(nondominated5dimNaive, dominated5dimNaive, "punkty5Naive", false);
+//        saveNdomAndDom.save(nondominated2dimKung, dominated2dimKung, "punkty2Kung", false);
+//        saveNdomAndDom.save(nondominated5dimKung, dominated5dimKung, "punkty5Kung", false);
+//
+//        System.out.println("\nPorownanie wynikow");
 
-        System.out.println("Algorytm naiwny");
-        System.out.println("2D: " + nondominated2dimNaive.size() + " punktow niezdominowanych z " + points2dim.size());
-        System.out.println("5D: " + nondominated5dimNaive.size() + " punktow niezdominowanych z " + points5dim.size());
-
-        // usuniecie z Listy wszystkich punktów punktów niezdominowanych w celu uzyskania punktów zdominowanych
-        List<Point> dominated2dimNaive = new ArrayList<>(points2dim);
-        List<Point> dominated5dimNaive = new ArrayList<>(points5dim);
-        dominated2dimNaive.removeAll(nondominated2dimNaive);
-        dominated5dimNaive.removeAll(nondominated5dimNaive);
-
-        // Test algorytmu Kung'a
-        Kung kung = new Kung();
-        List<Point> nondominated2dimKung = kung.runExperiment(points2dim);
-        List<Point> nondominated5dimKung = kung.runExperiment(points5dim);
-
-        System.out.println("\nAlgorytm Kung'a");
-        System.out.println("2D: " + nondominated2dimKung.size() + " punktow niezdominowanych z " + points2dim.size());
-        System.out.println("5D: " + nondominated5dimKung.size() + " punktow niezdominowanych z " + points5dim.size());
-
-        // usuniecie z Listy wszystkich punktów punktów niezdominowanych w celu uzyskania punktów zdominowanych
-        List<Point> dominated2dimKung = new ArrayList<>(points2dim);
-        List<Point> dominated5dimKung = new ArrayList<>(points5dim);
-        dominated2dimNaive.removeAll(nondominated2dimKung);
-        dominated5dimNaive.removeAll(nondominated5dimKung);
-
-        var saveNdomAndDom = new SaveNonDominatedAndDominatedPointsImpl();
-        saveNdomAndDom.save(nondominated2dimNaive,
-                dominated2dimNaive,
-                "punkty2",
-                false
-        );
-        saveNdomAndDom.save(nondominated5dimNaive,
-                dominated5dimNaive,
-                "punkty5",
-                false);
-
-        System.out.println("\nPorownanie wynikow");
-
-        testOfTime(naive, points2dim, kung, points5dim);
+        var di =  new WritePointsFromTopic8Ex2Impl();
+        List<Point> pointsToAlgorithm = di.write("MO-D3R");
+        Topic8Ex2 topic8Ex2 = new Topic8Ex2(naive);
+        List<Topic8Ex2.FrontAndPoint> fap = topic8Ex2.findFronts(pointsToAlgorithm);
+        SaveFrontAndPointsImpl sfp = new SaveFrontAndPointsImpl();
+        sfp.save(fap, "frontyIPunkty");
+//        testOfTime(naive, points2dim, kung, points5dim);
     }
 
     private static void testOfTime(Naive naive, List<Point> points2dim, Kung kung, List<Point> points5dim) {
