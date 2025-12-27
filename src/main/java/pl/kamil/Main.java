@@ -6,6 +6,8 @@ import pl.kamil.application.usecases.LocalSearchUseCase;
 import pl.kamil.domain.algorithm.Naive;
 import pl.kamil.domain.algorithm.Kung;
 import pl.kamil.domain.algorithm.Topic8Ex2;
+import pl.kamil.domain.algorithm2.NSGA2;
+import pl.kamil.domain.algorithm2.ZDT.ZDT1;
 import pl.kamil.domain.model.Point;
 import pl.kamil.domain.service.*;
 import pl.kamil.domain.algorithm.ls.LocalSearch;
@@ -17,7 +19,9 @@ import pl.kamil.infrastructure.adapters.ExcelExport;
 import pl.kamil.infrastructure.adapters.TXTExport;
 import pl.kamil.infrastructure.services.DataProcessor;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 public class Main {
     public static void lab1(RandomlyGeneratedNumbers rn) {
@@ -183,7 +187,7 @@ public class Main {
 //
 //        System.out.println("\nPorownanie wynikow");
 
-        var di =  new WritePointsFromTopic8Ex2Impl();
+        var di = new WritePointsFromTopic8Ex2Impl();
         List<Point> pointsToAlgorithm = di.write("MO-D3R");
         Topic8Ex2 topic8Ex2 = new Topic8Ex2(naive);
         List<Topic8Ex2.FrontAndPoint> fap = topic8Ex2.findFronts(pointsToAlgorithm);
@@ -223,9 +227,31 @@ public class Main {
         System.out.println("  Przyspieszenie: " + (double) naiveTime5D / kungTime5D + "x");
     }
 
+    public static void lab9() {
+        int m = 30;
+        var eFun = new ZDT1();
+        int l = 2;
+        int k = 2;
+        var alpha = 0.001;
+        List<Point> points = Stream.generate(Point::new).limit(100).toList();
+        // generuję im m = 30 losowych wartosci zmiennych decyzyjnych
+        points.forEach(p -> p.setCoords(generateNDecisionVariables(m)));
+
+        var nsga2 = new NSGA2(eFun, new Naive(), new RandomlyGeneratedNumbers());
+        nsga2.runExperiment(points, m, l, k, alpha);
+    }
+
+    public static List<Double> generateNDecisionVariables(int n) {
+        var rng = new RandomlyGeneratedNumbers();
+        List<Double> values = new ArrayList<>();
+        for (int i = 0; i < n; i++) {
+            values.add(rng.nextDouble());
+        }
+        return values;
+    }
+
 
     public static void main(String[] args) {
-        var rn = new RandomlyGeneratedNumbers();
-        lab8();
+        lab9();
     }
 }

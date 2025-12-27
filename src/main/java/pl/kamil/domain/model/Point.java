@@ -12,6 +12,10 @@ public class Point {
     private List<UInt16> coords16;
     private List<Double> sigmas;
     private final RepresentationConversionService rcs;
+    // do algorytmow pareto
+    private int rank;
+    private List<Double> objectives;
+    private double crowdingDistance;
 
     // konstruktor do algorytmów pareto
     public Point() {
@@ -107,8 +111,6 @@ public class Point {
                 .toList()));
     }
 
-
-
     public List<Double> getCoords() {
         return coords;
     }
@@ -125,10 +127,34 @@ public class Point {
         this.coords16 = coords16;
     }
 
+    public void setRank(int rank) {
+        this.rank = rank;
+    }
+
     @Override
     public String toString() {
         return "Point{" +
                 "coords=" + coords +
                 '}';
+    }
+
+    public void setObjectives(List<Double> objectives) {
+        this.objectives = objectives;
+    }
+
+    public List<Double> getObjectives() {
+        return objectives;
+    }
+
+    public int getRank() {
+        return rank;
+    }
+
+    public void setCrowdingDistance(double cd) {
+        this.crowdingDistance = cd;
+    }
+
+    public double getCrowdingDistance() {
+        return crowdingDistance;
     }
 }

@@ -6,7 +6,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Naive implements ParetoAlgorithm {
-
     public List<Point> runExperiment(List<Point> points) {
         List<Point> nondominated = new ArrayList<>();
         for (int m = 0; m < points.size(); m++) {
@@ -31,11 +30,11 @@ public class Naive implements ParetoAlgorithm {
 
     private boolean dominates(Point checked, Point dominator) {
         boolean isAnyBetter = false;
-        for (int i = 0; i < checked.getCoords().size(); i++) {
+        for (int i = 0; i < checked.getObjectives().size(); i++) {
             // jesli jakikolwiek wymiar jest lepszy w sprawdzanym to zwracamy false - nie jest zdominowany
-            if (checked.getCoords().get(i) > dominator.getCoords().get(i)) {
+            if (checked.getObjectives().get(i) > dominator.getObjectives().get(i)) {
                 return false;
-            } else if (checked.getCoords().get(i) < dominator.getCoords().get(i)) {
+            } else if (checked.getObjectives().get(i) < dominator.getObjectives().get(i)) {
                 isAnyBetter = true;
             }
         }
