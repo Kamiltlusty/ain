@@ -228,28 +228,16 @@ public class Main {
     }
 
     public static void lab9() {
+        int populationSize = 100;
         int m = 30;
         var eFun = new ZDT1();
         int l = 2;
         int k = 2;
         var alpha = 0.001;
-        List<Point> points = Stream.generate(Point::new).limit(100).toList();
-        // generuję im m = 30 losowych wartosci zmiennych decyzyjnych
-        points.forEach(p -> p.setCoords(generateNDecisionVariables(m)));
 
         var nsga2 = new NSGA2(eFun, new Naive(), new RandomlyGeneratedNumbers());
-        nsga2.runExperiment(points, m, l, k, alpha);
+        nsga2.runExperiment(populationSize, m, l, k, alpha);
     }
-
-    public static List<Double> generateNDecisionVariables(int n) {
-        var rng = new RandomlyGeneratedNumbers();
-        List<Double> values = new ArrayList<>();
-        for (int i = 0; i < n; i++) {
-            values.add(rng.nextDouble());
-        }
-        return values;
-    }
-
 
     public static void main(String[] args) {
         lab9();

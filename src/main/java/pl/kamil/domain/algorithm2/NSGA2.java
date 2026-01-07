@@ -6,11 +6,13 @@ import pl.kamil.domain.model.Point;
 import pl.kamil.domain.service.RandomlyGeneratedNumbers;
 
 import java.util.*;
+import java.util.stream.Stream;
 
 public class NSGA2 {
     private final ZDT1 zdt1;
     private final Naive naive;
     private final RandomlyGeneratedNumbers rn;
+    private static int evalCounter = 0;
 
     public NSGA2(ZDT1 zdt1, Naive naive, RandomlyGeneratedNumbers rn) {
         this.zdt1 = zdt1;
@@ -18,16 +20,44 @@ public class NSGA2 {
         this.rn = rn;
     }
 
-    public List<Point> runExperiment(List<Point> population, int m, int l, int k, double alpha) {
-        population.forEach(zdt1::evalFunc);
+    public static List<Double> generateNDecisionVariables(int n) {
+        var rng = new RandomlyGeneratedNumbers();
+        List<Double> values = new ArrayList<>();
+        for (int i = 0; i < n; i++) {
+            values.add(rng.nextDouble());
+        }
+        return values;
+    }
+
+    public List<Point> runExperiment(int populationSize, int m, int l, int k, double alpha) {
+        List<Point> population = Stream.generate(Point::new).limit(populationSize).toList();
+        // generuję im m = 30 losowych wartosci zmiennych decyzyjnych
+        population.forEach(p -> p.setCoords(generateNDecisionVariables(m)));
+        // ewaluacja
+        for (Point p : population) {
+            zdt1.evalFunc(p);
+            evalCounter++;
+        }
         // obliczenie poczatkowej sigmy ale do poczatkowej populacji nie trzeba jej zapisywac (nie uczestniczy w mutacji) dopiero do dzieci
         double initialSigma = (1.0 - 0.0) * alpha;
 
         findRanks(population);
-
-//        while
+        while (evalCounter < 20000) {
 //         EAOffSpringGen
-        EAOffspringGen(population, m, l, k, initialSigma);
+            List<Point> combined = EAOffspringGen(population, m, l, k, initialSigma);
+            findRanks(combined);
+            combined.sort(Comparator.comparingDouble(Point::getRank));
+            List<Point> result = new ArrayList<>(populationSize);
+            // wypelnia nowa populacje az napotka stopień (rank) ktory sie nie zmiesci caly do nowej populacji zwraca go, aby przekazac do crowding sort
+            List<Point> overloadRank = new ArrayList<>(fillResult(combined, populationSize, result));
+            calculateCrowdingDistancesFor1Rank(overloadRank);
+            // do nowej generacji dodajemy wartosci z nadmiarowego stopnia do limitu rozmiaru populacji
+            result.addAll(overloadRank.stream().limit(populationSize - result.size()).toList());
+            population = new ArrayList<>(result);
+        }
+        population.stream().filter(p -> p.getRank() == 1).forEach(p -> {
+            System.out.println("coords:" + p.getCoords());
+        });
         return List.of();
     }
 
@@ -46,8 +76,8 @@ public class NSGA2 {
         }
     }
 
-    private void EAOffspringGen(List<Point> population, int m, int l, int k, double initialSigma) {
-        calculateCrowdingDistances(population);
+    private List<Point> EAOffspringGen(List<Point> population, int m, int l, int k, double initialSigma) {
+        calculateCrowdingDistancesForPopulation(population);
         // selection
         List<Point> parents = select(population, l);
         // crossover
@@ -61,9 +91,36 @@ public class NSGA2 {
         children.forEach(p -> p.setSigmas(new ArrayList<>(initialSigmas)));
         // mutation
         mutation(children, m);
+        // zapisanie objectives dla populacji dzieci
+        for (Point p : children) {
+            zdt1.evalFunc(p);
+            evalCounter++;
+        }
+        // combine parent and offspring populations
+        return combine(parents, children);
     }
 
-    private void calculateCrowdingDistances(List<Point> population) {
+    private List<Point> fillResult(List<Point> combined, int populationSize, List<Point> result) {
+        int i = 1;
+        while (true) {
+            int finalI = i;
+            List<Point> rank = combined.stream().filter(p -> p.getRank() == finalI).toList();
+            if (result.size() + rank.size() >= populationSize) {
+                return rank;
+            }
+            result.addAll(rank);
+            i++;
+        }
+    }
+
+    private List<Point> combine(List<Point> parents, List<Point> children) {
+        List<Point> combined = new ArrayList<>();
+        combined.addAll(parents);
+        combined.addAll(children);
+        return combined;
+    }
+
+    private void calculateCrowdingDistancesForPopulation(List<Point> population) {
         List<List<Point>> pointsDividedByRanks = new ArrayList<>();
         int highestRank = findHighestRank(population);
         for (int i = 0; i < highestRank; i++) {
@@ -85,7 +142,7 @@ public class NSGA2 {
 
                 // assign infinity value for extreme points
                 rank.get(0).setCrowdingDistance(Double.MAX_VALUE);
-                rank.get(rank.size()-1).setCrowdingDistance(Double.MAX_VALUE);
+                rank.get(rank.size() - 1).setCrowdingDistance(Double.MAX_VALUE);
 
                 // calculate max and min for ith objective
                 Double fMin = rank.get(0).getObjectives().get(i);
@@ -102,6 +159,35 @@ public class NSGA2 {
                 }
             }
         }
+    }
+
+    // CrowdingSort
+    private void calculateCrowdingDistancesFor1Rank(List<Point> r) {
+        int objectivesSize = r.get(0).getObjectives().size();
+        for (int i = 0; i < objectivesSize; i++) {
+            // sort
+            int finalI = i;
+            r.sort(Comparator.comparingDouble(p -> p.getObjectives().get(finalI)));
+
+            // assign infinity value for extreme points
+            r.get(0).setCrowdingDistance(Double.MAX_VALUE);
+            r.get(r.size() - 1).setCrowdingDistance(Double.MAX_VALUE);
+
+            // calculate max and min for ith objective
+            Double fMin = r.get(0).getObjectives().get(i);
+            Double fMax = r.get(r.size() - 1).getObjectives().get(i);
+            if (fMax - fMin == 0) continue;
+
+            // resolve crowding distance
+            for (int k = 1; k < r.size() - 1; k++) {
+                Double before = r.get(k - 1).getObjectives().get(i);
+                Double after = r.get(k + 1).getObjectives().get(i);
+                // assign crowding distance for middle points with normalization
+                r.get(k).setCrowdingDistance(r.get(k).getCrowdingDistance() +
+                        (Math.abs(before - after) / (fMax - fMin)));
+            }
+        }
+        r.sort(Comparator.comparingDouble(Point::getCrowdingDistance).reversed());
     }
 
     int findHighestRank(List<Point> population) {
