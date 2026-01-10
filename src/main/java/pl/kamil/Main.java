@@ -8,6 +8,10 @@ import pl.kamil.domain.algorithm.Kung;
 import pl.kamil.domain.algorithm.Topic8Ex2;
 import pl.kamil.domain.algorithm2.NSGA2;
 import pl.kamil.domain.algorithm2.ZDT.ZDT1;
+import pl.kamil.domain.algorithm2.ZDT.ZDT2;
+import pl.kamil.domain.algorithm2.ZDT.ZDT3;
+import pl.kamil.domain.algorithm2.ZDT.ZDT4;
+import pl.kamil.domain.algorithm2.ZDT.ZDT6;
 import pl.kamil.domain.model.Point;
 import pl.kamil.domain.service.*;
 import pl.kamil.domain.algorithm.ls.LocalSearch;
@@ -18,6 +22,10 @@ import pl.kamil.infrastructure.adapters.WritePointsFromTopic8Ex2Impl;
 import pl.kamil.infrastructure.adapters.ExcelExport;
 import pl.kamil.infrastructure.adapters.TXTExport;
 import pl.kamil.infrastructure.services.DataProcessor;
+
+import java.io.PrintWriter;
+import java.io.FileWriter;
+import java.io.IOException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -230,13 +238,37 @@ public class Main {
     public static void lab9() {
         int populationSize = 100;
         int m = 30;
-        var eFun = new ZDT1();
+        var eFun = new ZDT6();
         int l = 2;
         int k = 2;
         var alpha = 0.001;
 
         var nsga2 = new NSGA2(eFun, new Naive(), new RandomlyGeneratedNumbers());
-        nsga2.runExperiment(populationSize, m, l, k, alpha);
+        var result = nsga2.runExperiment(populationSize, m, l, k, alpha);
+
+        try {
+            String fileName = "wyniki_nsga2.txt";
+            PrintWriter writer = new PrintWriter(new FileWriter(fileName));
+
+            // Tylko wartości współrzędnych, oddzielone spacjami
+            for (Point p : result) {
+                List<Double> coords = p.getCoords();
+                for (int i = 0; i < coords.size(); i++) {
+                    writer.print(coords.get(i));
+                    if (i < coords.size() - 1) {
+                        writer.print(" "); // spacja między wartościami
+                    }
+                }
+                writer.println(); // enter po każdym punkcie
+            }
+
+            writer.close();
+            System.out.println("\nWyniki zapisano do pliku: " + fileName);
+
+        } catch (IOException e) {
+            System.err.println("Błąd podczas zapisu do pliku: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     public static void main(String[] args) {

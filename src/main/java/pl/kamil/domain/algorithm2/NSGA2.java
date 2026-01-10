@@ -4,18 +4,19 @@ import pl.kamil.domain.algorithm.Naive;
 import pl.kamil.domain.algorithm2.ZDT.ZDT1;
 import pl.kamil.domain.model.Point;
 import pl.kamil.domain.service.RandomlyGeneratedNumbers;
+import java.util.stream.Collectors;
 
 import java.util.*;
 import java.util.stream.Stream;
 
 public class NSGA2 {
-    private final ZDT1 zdt1;
+    private final ParetoEvalFunc zdt;
     private final Naive naive;
     private final RandomlyGeneratedNumbers rn;
     private static int evalCounter = 0;
 
-    public NSGA2(ZDT1 zdt1, Naive naive, RandomlyGeneratedNumbers rn) {
-        this.zdt1 = zdt1;
+    public NSGA2(ParetoEvalFunc zdt, Naive naive, RandomlyGeneratedNumbers rn) {
+        this.zdt = zdt;
         this.naive = naive;
         this.rn = rn;
     }
@@ -31,34 +32,39 @@ public class NSGA2 {
 
     public List<Point> runExperiment(int populationSize, int m, int l, int k, double alpha) {
         List<Point> population = Stream.generate(Point::new).limit(populationSize).toList();
-        // generuję im m = 30 losowych wartosci zmiennych decyzyjnych
         population.forEach(p -> p.setCoords(generateNDecisionVariables(m)));
-        // ewaluacja
+
         for (Point p : population) {
-            zdt1.evalFunc(p);
+            zdt.evalFunc(p);
             evalCounter++;
         }
-        // obliczenie poczatkowej sigmy ale do poczatkowej populacji nie trzeba jej zapisywac (nie uczestniczy w mutacji) dopiero do dzieci
-        double initialSigma = (1.0 - 0.0) * alpha;
 
+        double initialSigma = (1.0 - 0.0) * alpha;
         findRanks(population);
+
         while (evalCounter < 20000) {
-//         EAOffSpringGen
             List<Point> combined = EAOffspringGen(population, m, l, k, initialSigma);
             findRanks(combined);
             combined.sort(Comparator.comparingDouble(Point::getRank));
             List<Point> result = new ArrayList<>(populationSize);
-            // wypelnia nowa populacje az napotka stopień (rank) ktory sie nie zmiesci caly do nowej populacji zwraca go, aby przekazac do crowding sort
             List<Point> overloadRank = new ArrayList<>(fillResult(combined, populationSize, result));
             calculateCrowdingDistancesFor1Rank(overloadRank);
-            // do nowej generacji dodajemy wartosci z nadmiarowego stopnia do limitu rozmiaru populacji
             result.addAll(overloadRank.stream().limit(populationSize - result.size()).toList());
             population = new ArrayList<>(result);
         }
-        population.stream().filter(p -> p.getRank() == 1).forEach(p -> {
+
+        // Zbierz punkty z rankiem 1
+        List<Point> rank1Points = population.stream()
+                .filter(p -> p.getRank() == 1)
+                .collect(Collectors.toList());
+
+        // Wypisz do konsoli
+        rank1Points.forEach(p -> {
             System.out.println("coords:" + p.getCoords());
         });
-        return List.of();
+
+        // Zwróć punkty z rankiem 1 (zamiast pustej listy)
+        return rank1Points;
     }
 
 
@@ -93,7 +99,7 @@ public class NSGA2 {
         mutation(children, m);
         // zapisanie objectives dla populacji dzieci
         for (Point p : children) {
-            zdt1.evalFunc(p);
+            zdt.evalFunc(p);
             evalCounter++;
         }
         // combine parent and offspring populations
