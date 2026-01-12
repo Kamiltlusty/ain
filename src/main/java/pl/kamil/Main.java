@@ -238,7 +238,7 @@ public class Main {
     public static void lab9() {
         int populationSize = 100;
         int m = 30;
-        var eFun = new ZDT6();
+        var eFun = new ZDT1();
         int l = 2;
         int k = 2;
         var alpha = 0.001;
@@ -252,10 +252,10 @@ public class Main {
 
             // Tylko wartości współrzędnych, oddzielone spacjami
             for (Point p : result) {
-                List<Double> coords = p.getCoords();
-                for (int i = 0; i < coords.size(); i++) {
-                    writer.print(coords.get(i));
-                    if (i < coords.size() - 1) {
+                List<Double> obj = p.getObjectives();
+                for (int i = 0; i < obj.size(); i++) {
+                    writer.print(obj.get(i));
+                    if (i < obj.size() - 1) {
                         writer.print(" "); // spacja między wartościami
                     }
                 }
