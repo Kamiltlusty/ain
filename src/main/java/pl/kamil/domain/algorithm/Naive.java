@@ -9,35 +9,41 @@ public class Naive implements ParetoAlgorithm {
     public List<Point> runExperiment(List<Point> points) {
         List<Point> nondominated = new ArrayList<>();
         for (int m = 0; m < points.size(); m++) {
-            Point i = points.get(m);
+            Point current = points.get(m);
             boolean dominated = false;
 
             for (int n = 0; n < points.size(); n++) {
                 if (n == m) continue;
 
-                Point j = points.get(n);
-                if (dominates(i, j)) {
+                Point other = points.get(n);
+                if (dominates(other, current)) {
                     dominated = true;
                     break;
                 }
             }
             if (!dominated) {
-                nondominated.add(i);
+                nondominated.add(current);
             }
         }
         return nondominated;
     }
 
-    private boolean dominates(Point checked, Point dominator) {
-        boolean isAnyBetter = false;
-        for (int i = 0; i < checked.getObjectives().size(); i++) {
-            // jesli jakikolwiek wymiar jest lepszy w sprawdzanym to zwracamy false - nie jest zdominowany
-            if (checked.getObjectives().get(i) > dominator.getObjectives().get(i)) {
-                return false;
-            } else if (checked.getObjectives().get(i) < dominator.getObjectives().get(i)) {
-                isAnyBetter = true;
+    private boolean dominates(Point pointA, Point pointB) {
+        boolean allBetterOrEqual = true;
+        boolean atLeastOneBetter = false;
+
+        for (int i = 0; i < pointA.getObjectives().size(); i++) {
+            double aValue = pointA.getObjectives().get(i);
+            double bValue = pointB.getObjectives().get(i);
+
+            if (aValue > bValue) {
+                allBetterOrEqual = false;
+                break;
+            } else if (aValue < bValue) {
+                atLeastOneBetter = true;
             }
         }
-        return isAnyBetter;
+
+        return allBetterOrEqual && atLeastOneBetter;
     }
 }

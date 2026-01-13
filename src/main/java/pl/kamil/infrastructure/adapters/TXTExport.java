@@ -1,6 +1,7 @@
 package pl.kamil.infrastructure.adapters;
 
 import pl.kamil.application.ports.DataExport;
+import pl.kamil.domain.model.Point;
 
 import java.io.*;
 import java.util.List;
@@ -44,6 +45,25 @@ public class TXTExport implements DataExport {
                         writer.write(" ");
                     }
                 }
+                writer.newLine();
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public void save(List<Point> points, String fileName, boolean neverUsed) {
+        try (var writer = new BufferedWriter(new FileWriter(fileName + ".txt"))) {
+            for (int i = 0; i < points.size(); i++) {
+                Point p  = points.get(i);
+                if (p.getRank() > 1) {continue;}
+                String formatted = String.format(Locale.US, "%s",
+                        String.format("%.10f %.10f",
+                                p.getObjectives().get(0),
+                                p.getObjectives().get(1)
+                        ));
+                writer.write(formatted);
                 writer.newLine();
             }
         } catch (IOException e) {

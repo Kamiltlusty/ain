@@ -5,7 +5,9 @@ import pl.kamil.domain.algorithm2.ZDT.ZDT1;
 import pl.kamil.domain.model.Point;
 import pl.kamil.domain.service.RandomlyGeneratedNumbers;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.stream.Stream;
 
 public class NSGA2 {
@@ -30,21 +32,21 @@ public class NSGA2 {
     }
 
     public List<Point> runExperiment(int populationSize, int m, int l, int k, double alpha) {
+        Double initialSigma = alpha;
         List<Point> population = Stream.generate(Point::new).limit(populationSize).toList();
         // generuję im m = 30 losowych wartosci zmiennych decyzyjnych
         population.forEach(p -> p.setCoords(generateNDecisionVariables(m)));
+        population.forEach(p -> p.setSigmas(new ArrayList<>(Stream.generate(() -> initialSigma).limit(m).toList())));
         // ewaluacja
         for (Point p : population) {
             zdt1.evalFunc(p);
             evalCounter++;
         }
-        // obliczenie poczatkowej sigmy ale do poczatkowej populacji nie trzeba jej zapisywac (nie uczestniczy w mutacji) dopiero do dzieci
-        double initialSigma = (1.0 - 0.0) * alpha;
 
         findRanks(population);
         while (evalCounter < 20000) {
 //         EAOffSpringGen
-            List<Point> combined = EAOffspringGen(population, m, l, k, initialSigma);
+            List<Point> combined = EAOffspringGen(population, m, l, k);
             findRanks(combined);
             combined.sort(Comparator.comparingDouble(Point::getRank));
             List<Point> result = new ArrayList<>(populationSize);
@@ -54,11 +56,9 @@ public class NSGA2 {
             // do nowej generacji dodajemy wartosci z nadmiarowego stopnia do limitu rozmiaru populacji
             result.addAll(overloadRank.stream().limit(populationSize - result.size()).toList());
             population = new ArrayList<>(result);
+            repairSigmasInPopulation(population, m);
         }
-        population.stream().filter(p -> p.getRank() == 1).forEach(p -> {
-            System.out.println("coords:" + p.getCoords());
-        });
-        return List.of();
+        return population;
     }
 
 
@@ -76,19 +76,13 @@ public class NSGA2 {
         }
     }
 
-    private List<Point> EAOffspringGen(List<Point> population, int m, int l, int k, double initialSigma) {
+    private List<Point> EAOffspringGen(List<Point> population, int m, int l, int k) {
         calculateCrowdingDistancesForPopulation(population);
         // selection
         List<Point> parents = select(population, l);
         // crossover
         List<Point> children = recombine(parents, k, m);
 
-        // zapisanie sigmy do dzieci
-        List<Double> initialSigmas = new ArrayList<>();
-        for (int z = 0; z < m; z++) {
-            initialSigmas.add(initialSigma);
-        }
-        children.forEach(p -> p.setSigmas(new ArrayList<>(initialSigmas)));
         // mutation
         mutation(children, m);
         // zapisanie objectives dla populacji dzieci
@@ -97,7 +91,7 @@ public class NSGA2 {
             evalCounter++;
         }
         // combine parent and offspring populations
-        return combine(parents, children);
+        return combine(population, children);
     }
 
     private List<Point> fillResult(List<Point> combined, int populationSize, List<Point> result) {
@@ -113,9 +107,9 @@ public class NSGA2 {
         }
     }
 
-    private List<Point> combine(List<Point> parents, List<Point> children) {
+    private List<Point> combine(List<Point> population, List<Point> children) {
         List<Point> combined = new ArrayList<>();
-        combined.addAll(parents);
+        combined.addAll(population);
         combined.addAll(children);
         return combined;
     }
@@ -208,15 +202,16 @@ public class NSGA2 {
             for (int j = 0; j < l; j++) {
                 drawn.add(drawPointFromPopulation(points));
             }
+
             Point best = drawn.get(0);
             for (int j = 1; j < l; j++) {
                 Point drawnJ = drawn.get(j);
-                if (drawnJ.getRank() == best.getRank()) {
+                if (drawnJ.getRank() < best.getRank()) {
+                    best = drawnJ;
+                } else if (drawnJ.getRank() == best.getRank()) {
                     if (drawnJ.getCrowdingDistance() > best.getCrowdingDistance()) {
                         best = drawnJ;
                     }
-                } else if (drawnJ.getRank() > best.getRank()) {
-                    best = drawn.get(j);
                 }
             }
             parents.add(best);
@@ -228,6 +223,7 @@ public class NSGA2 {
         return population.get(rn.nextInt(population.size()));
     }
 
+    // ze srednia
     private List<Point> recombine(List<Point> parents, int k, int dim) {
         List<Point> children = new ArrayList<>();
 
@@ -235,20 +231,39 @@ public class NSGA2 {
             List<Point> chosen = chooseK(parents, k);
             Point child = new Point();
             List<Double> dims = new ArrayList<>();
+            List<Double> sigmas = new ArrayList<>();
 
             for (int j = 0; j < dim; j++) {
-                double sum = 0;
+                double sumCoords = 0;
+                double sumSigmas = 0;
                 for (Point p : chosen) {
-                    sum += p.getCoords().get(j);
+                    sumCoords += p.getCoords().get(j);
+                    sumSigmas += p.getSigmas().get(j);
                 }
-                dims.add(sum / k);
+                dims.add(sumCoords / k);
+                sigmas.add(sumSigmas / k);
             }
 
             child.setCoords(dims);
+            child.setSigmas(sigmas);
             children.add(child);
         }
 
         return children;
+    }
+
+    private void repairSigmasInPopulation(List<Point> population, int dim) {
+        double currentSigma = 0.05;
+
+        for (Point p : population) {
+            if (p.getSigmas() == null || p.getSigmas().size() != dim) {
+                List<Double> newSigmas = new ArrayList<>();
+                for (int i = 0; i < dim; i++) {
+                    newSigmas.add(currentSigma);
+                }
+                p.setSigmas(newSigmas);
+            }
+        }
     }
 
     private List<Point> chooseK(List<Point> parents, int k) {
@@ -261,8 +276,11 @@ public class NSGA2 {
 
     private void mutation(List<Point> children, int dim) {
         double epsilon0 = 1e-8;
-        double tauPrime = 1 / Math.sqrt(2.0 * dim);
-        double tau = 1 / Math.sqrt(2.0 * Math.sqrt(dim));
+        double scaleFactor = 5;
+        double tauPrime = (1 / Math.sqrt(2.0 * dim)) * scaleFactor;
+        double tau = (1 / Math.sqrt(2.0 * Math.sqrt(dim))) * scaleFactor;
+        double MAX_SIGMA = 0.1;
+        double MIN_SIGMA = 0.001;
 
         for (var child : children) {
             List<Double> sigmas = child.getSigmas();
@@ -275,6 +293,8 @@ public class NSGA2 {
                 double sigmaPrim = sigma_i * Math.exp(tauPrime * globalGaussian + tau * localGaussian);
 
                 if (sigmaPrim < epsilon0) sigmaPrim = epsilon0;
+                if (sigmaPrim < MIN_SIGMA) sigmaPrim = MIN_SIGMA;
+                if (sigmaPrim > MAX_SIGMA) sigmaPrim = MAX_SIGMA;
 
                 newSigmas.add(sigmaPrim);
             }
@@ -283,6 +303,8 @@ public class NSGA2 {
             List<Double> newCoords = new ArrayList<>();
             for (int i = 0; i < dim; i++) {
                 double x = child.getCoords().get(i) + rn.nextGaussian(0, newSigmas.get(i));
+
+                x = Math.max(0.0, Math.min(1.0, x));
                 newCoords.add(x);
             }
             child.setCoords(newCoords);

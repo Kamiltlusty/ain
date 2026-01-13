@@ -20,6 +20,7 @@ import pl.kamil.infrastructure.adapters.TXTExport;
 import pl.kamil.infrastructure.services.DataProcessor;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -233,10 +234,12 @@ public class Main {
         var eFun = new ZDT1();
         int l = 2;
         int k = 2;
-        var alpha = 0.001;
+        var alpha = 0.04;
 
         var nsga2 = new NSGA2(eFun, new Naive(), new RandomlyGeneratedNumbers());
-        nsga2.runExperiment(populationSize, m, l, k, alpha);
+        List<Point> points = nsga2.runExperiment(populationSize, m, l, k, alpha);
+        TXTExport export = new TXTExport();
+        export.save(points, "front", true);
     }
 
     public static void main(String[] args) {
