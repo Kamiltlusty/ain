@@ -11,13 +11,13 @@ import java.util.List;
 import java.util.stream.Stream;
 
 public class NSGA2 {
-    private final ZDT1 zdt1;
+    private final ParetoEvalFunc zdt;
     private final Naive naive;
     private final RandomlyGeneratedNumbers rn;
-    private static int evalCounter = 0;
+    private static int counter = 0;
 
-    public NSGA2(ZDT1 zdt1, Naive naive, RandomlyGeneratedNumbers rn) {
-        this.zdt1 = zdt1;
+    public NSGA2(ParetoEvalFunc zdt, Naive naive, RandomlyGeneratedNumbers rn) {
+        this.zdt = zdt;
         this.naive = naive;
         this.rn = rn;
     }
@@ -34,17 +34,16 @@ public class NSGA2 {
     public List<Point> runExperiment(int populationSize, int m, int l, int k, double alpha) {
         Double initialSigma = alpha;
         List<Point> population = Stream.generate(Point::new).limit(populationSize).toList();
-        // generuję im m = 30 losowych wartosci zmiennych decyzyjnych
+        // generuję im m losowych wartosci zmiennych decyzyjnych
         population.forEach(p -> p.setCoords(generateNDecisionVariables(m)));
         population.forEach(p -> p.setSigmas(new ArrayList<>(Stream.generate(() -> initialSigma).limit(m).toList())));
         // ewaluacja
         for (Point p : population) {
-            zdt1.evalFunc(p);
-            evalCounter++;
+            zdt.evalFunc(p);
         }
 
         findRanks(population);
-        while (evalCounter < 20000) {
+        while (counter < 500) {
 //         EAOffSpringGen
             List<Point> combined = EAOffspringGen(population, m, l, k);
             findRanks(combined);
@@ -57,6 +56,7 @@ public class NSGA2 {
             result.addAll(overloadRank.stream().limit(populationSize - result.size()).toList());
             population = new ArrayList<>(result);
             repairSigmasInPopulation(population, m);
+            counter++;
         }
         return population;
     }
@@ -87,8 +87,7 @@ public class NSGA2 {
         mutation(children, m);
         // zapisanie objectives dla populacji dzieci
         for (Point p : children) {
-            zdt1.evalFunc(p);
-            evalCounter++;
+            zdt.evalFunc(p);
         }
         // combine parent and offspring populations
         return combine(population, children);

@@ -48,7 +48,7 @@ public class Kung implements ParetoAlgorithm {
             }
         }
 
-        // Łączenie wynikow
+        // laczenie wynikow
         List<Point> result = new ArrayList<>(leftResult);
         result.addAll(filteredRight);
         return result;

@@ -7,7 +7,7 @@ import pl.kamil.domain.algorithm.Naive;
 import pl.kamil.domain.algorithm.Kung;
 import pl.kamil.domain.algorithm.Topic8Ex2;
 import pl.kamil.domain.algorithm2.NSGA2;
-import pl.kamil.domain.algorithm2.ZDT.ZDT1;
+import pl.kamil.domain.algorithm2.ZDT.*;
 import pl.kamil.domain.model.Point;
 import pl.kamil.domain.service.*;
 import pl.kamil.domain.algorithm.ls.LocalSearch;
@@ -230,8 +230,8 @@ public class Main {
 
     public static void lab9() {
         int populationSize = 100;
-        int m = 30;
-        var eFun = new ZDT1();
+        int m = 50;
+        var eFun = new ZDT6();
         int l = 2;
         int k = 2;
         var alpha = 0.04;
