@@ -100,4 +100,18 @@ public class TXTExport implements DataExport {
             throw new RuntimeException(e);
         }
     }
+    @Override
+    public void saveStringList(List<String> lines, String filename) {
+        String filePath = filename + ".txt";
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
+            for (String line : lines) {
+                writer.write(line);
+                writer.newLine();
+            }
+            System.out.println("Dane zapisane do pliku: " + filePath);
+        } catch (IOException e) {
+            System.err.println("Błąd podczas zapisywania do pliku: " + e.getMessage());
+        }
+    }
 }
+

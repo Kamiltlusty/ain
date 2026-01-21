@@ -12,4 +12,5 @@ public interface DataExport {
     void save (Map<Integer, List<Double>> data, String fileName);
     void save(int[][] ecdfValues, String wartosciDoWykresuEcdf);
     void save(List<Point> points, String fileName, boolean neverUsed);
+    void saveStringList(List<String> lines, String fileName);
 }

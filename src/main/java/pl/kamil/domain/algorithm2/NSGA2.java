@@ -19,6 +19,11 @@ public class NSGA2 {
     private final List<Integer> saveIterations = List.of(20, 50, 100, 500);
     private final List<List<Point>> savedFronts = new ArrayList<>();
 
+    private List<Point> front20;
+    private List<Point> front50;
+    private List<Point> front100;
+    private List<Point> front500;
+
     public NSGA2(ParetoEvalFunc zdt, Naive naive, RandomlyGeneratedNumbers rn, TXTExport export) {
         this.zdt = zdt;
         this.naive = naive;
@@ -36,6 +41,7 @@ public class NSGA2 {
     }
 
     public List<Point> runExperiment(int populationSize, int m, int l, int k, double alpha, String functionName, int dimensions) {
+        counter = 0;
         Double initialSigma = alpha;
         List<Point> population = Stream.generate(Point::new).limit(populationSize).toList();
         // generuję im m losowych wartosci zmiennych decyzyjnych
@@ -50,7 +56,7 @@ public class NSGA2 {
         while (counter < 500) {
             counter++;
             if (saveIterations.contains(counter)) {
-                saveCurrentFront(population, functionName, dimensions, counter);
+                saveCurrentFrontToMemory(population, counter);
             }
 
 //         EAOffSpringGen
@@ -67,23 +73,87 @@ public class NSGA2 {
             repairSigmasInPopulation(population, m);
             //counter++;
         }
-        saveCurrentFront(population, functionName, dimensions, 500);
+        saveCurrentFrontToMemory(population, 500);
+
+        saveAllFrontsToOneFile(functionName, dimensions);
 
         return population;
     }
 
-    private void saveCurrentFront(List<Point> population, String functionName, int dimensions, int iteration) {
+    private void saveCurrentFrontToMemory(List<Point> population, int iteration) {
         // Znajdź punkty z rankiem 1 (front Pareto)
         List<Point> front = population.stream()
                 .filter(p -> p.getRank() == 1)
                 .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
 
-        // Zapisz front do pliku
-        String filename = String.format("%s_%dd_iter%d", functionName, dimensions, iteration);
-        export.save(front, filename, true);
+        // Zapisz front do odpowiedniej zmiennej
+        switch (iteration) {
+            case 20 -> front20 = front;
+            case 50 -> front50 = front;
+            case 100 -> front100 = front;
+            case 500 -> front500 = front;
+        }
 
-        // Dodaj do listy zapisanych frontów
-        savedFronts.add(front);
+        System.out.println("Zapisano front z iteracji " + iteration + " - " + front.size() + " punktow");
+    }
+
+    private void saveAllFrontsToOneFile(String functionName, int dimensions) {
+        // Znajdź maksymalną liczbę punktów wśród wszystkich frontów
+        int maxPoints = Math.max(
+                Math.max(front20 != null ? front20.size() : 0, front50 != null ? front50.size() : 0),
+                Math.max(front100 != null ? front100.size() : 0, front500 != null ? front500.size() : 0)
+        );
+
+        // Przygotuj dane do zapisu - 8 kolumn
+        List<String> lines = new ArrayList<>();
+
+        for (int i = 0; i < maxPoints; i++) {
+            StringBuilder line = new StringBuilder();
+
+            // Iteracja 20
+            if (front20 != null && i < front20.size()) {
+                Point p = front20.get(i);
+                line.append(p.getObjectives().get(0)).append("\t");
+                line.append(p.getObjectives().get(1)).append("\t");
+            } else {
+                line.append("\t\t"); // puste kolumny
+            }
+
+            // Iteracja 50
+            if (front50 != null && i < front50.size()) {
+                Point p = front50.get(i);
+                line.append(p.getObjectives().get(0)).append("\t");
+                line.append(p.getObjectives().get(1)).append("\t");
+            } else {
+                line.append("\t\t"); // puste kolumny
+            }
+
+            // Iteracja 100
+            if (front100 != null && i < front100.size()) {
+                Point p = front100.get(i);
+                line.append(p.getObjectives().get(0)).append("\t");
+                line.append(p.getObjectives().get(1)).append("\t");
+            } else {
+                line.append("\t\t"); // puste kolumny
+            }
+
+            // Iteracja 500
+            if (front500 != null && i < front500.size()) {
+                Point p = front500.get(i);
+                line.append(p.getObjectives().get(0)).append("\t");
+                line.append(p.getObjectives().get(1));
+            }
+
+            lines.add(line.toString());
+        }
+
+        // Zapisz do pliku
+        String filename = String.format("%s_%dd_all_iterations", functionName, dimensions);
+        export.saveStringList(lines, filename);
+
+        System.out.println("Zapisano wszystkie fronty do pliku: " + filename + ".txt");
+        System.out.println("Struktura pliku (8 kolumn):");
+        System.out.println("iter20_f1\titer20_f2\titer50_f1\titer50_f2\titer100_f1\titer100_f2\titer500_f1\titer500_f2");
     }
 
     public void findRanks(List<Point> points) {
