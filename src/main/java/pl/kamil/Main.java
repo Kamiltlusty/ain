@@ -230,8 +230,8 @@ public class Main {
 
     public static void lab9() {
         int populationSize = 100;
-        int m = 50;
-        var eFun = new ZDT6();
+        int m = 30;
+        var eFun = new ZDT4();
         int l = 2;
         int k = 2;
         var alpha = 0.04;

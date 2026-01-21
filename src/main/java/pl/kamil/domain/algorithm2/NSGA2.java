@@ -1,7 +1,6 @@
 package pl.kamil.domain.algorithm2;
 
 import pl.kamil.domain.algorithm.Naive;
-import pl.kamil.domain.algorithm2.ZDT.ZDT1;
 import pl.kamil.domain.model.Point;
 import pl.kamil.domain.service.RandomlyGeneratedNumbers;
 
@@ -81,7 +80,7 @@ public class NSGA2 {
         // selection
         List<Point> parents = select(population, l);
         // crossover
-        List<Point> children = recombine(parents, k, m);
+        List<Point> children = recombine(parents, m);
 
         // mutation
         mutation(children, m);
@@ -194,58 +193,170 @@ public class NSGA2 {
     }
 
     // Crowded Tournament Selection Operator
-    private List<Point> select(List<Point> points, int l) {
-        List<Point> parents = new ArrayList<>();
-        for (int i = 0; i < points.size(); i++) {
-            List<Point> drawn = new ArrayList<>();
-            for (int j = 0; j < l; j++) {
-                drawn.add(drawPointFromPopulation(points));
-            }
+//    private List<Point> select(List<Point> points, int l) {
+//        List<Point> parents = new ArrayList<>();
+//        for (int i = 0; i < points.size(); i++) {
+//            List<Point> drawn = new ArrayList<>();
+//            for (int j = 0; j < l; j++) {
+//                drawn.add(drawPointFromPopulation(points));
+//            }
+//
+//            Point best = drawn.get(0);
+//            for (int j = 1; j < l; j++) {
+//                Point drawnJ = drawn.get(j);
+//                if (drawnJ.getRank() < best.getRank()) {
+//                    best = drawnJ;
+//                } else if (drawnJ.getRank() == best.getRank()) {
+//                    if (drawnJ.getCrowdingDistance() > best.getCrowdingDistance()) {
+//                        best = drawnJ;
+//                    }
+//                }
+//            }
+//            parents.add(best);
+//        }
+//        return parents;
+//    }
 
-            Point best = drawn.get(0);
-            for (int j = 1; j < l; j++) {
-                Point drawnJ = drawn.get(j);
-                if (drawnJ.getRank() < best.getRank()) {
-                    best = drawnJ;
-                } else if (drawnJ.getRank() == best.getRank()) {
-                    if (drawnJ.getCrowdingDistance() > best.getCrowdingDistance()) {
-                        best = drawnJ;
+    private List<Point> select(List<Point> population, int l) {
+        List<Point> parents = new ArrayList<>();
+        int phases = 3;
+
+        for (int i = 0; i < population.size(); i++) {
+            Point bestOverall = null;
+
+            for (int phase = 1; phase <= phases; phase++) {
+                int candidatesInPhase = l * (int) Math.pow(2, phase);
+
+                List<Point> phaseCandidates = new ArrayList<>();
+                for (int j = 0; j < candidatesInPhase; j++) {
+                    phaseCandidates.add(population.get(rn.nextInt(population.size())));
+                }
+
+                Point bestInPhase = phaseCandidates.get(0);
+                for (int j = 1; j < phaseCandidates.size(); j++) {
+                    Point candidate = phaseCandidates.get(j);
+
+                    if (candidate.getRank() < bestInPhase.getRank()) {
+                        bestInPhase = candidate;
+                    } else if (candidate.getRank() == bestInPhase.getRank()) {
+                        if (candidate.getCrowdingDistance() > bestInPhase.getCrowdingDistance()) {
+                            bestInPhase = candidate;
+                        }
+                    }
+                }
+
+                if (bestOverall == null) {
+                    bestOverall = bestInPhase;
+                } else {
+                    if (bestInPhase.getRank() < bestOverall.getRank()) {
+                        bestOverall = bestInPhase;
+                    } else if (bestInPhase.getRank() == bestOverall.getRank()) {
+                        if (bestInPhase.getCrowdingDistance() > bestOverall.getCrowdingDistance()) {
+                            bestOverall = bestInPhase;
+                        }
                     }
                 }
             }
-            parents.add(best);
+
+            parents.add(bestOverall);
         }
+
         return parents;
     }
 
-    private Point drawPointFromPopulation(List<Point> population) {
-        return population.get(rn.nextInt(population.size()));
-    }
-
     // ze srednia
-    private List<Point> recombine(List<Point> parents, int k, int dim) {
+//    private List<Point> recombine(List<Point> parents, int k, int dim) {
+//        List<Point> children = new ArrayList<>();
+//
+//        for (int i = 0; i < parents.size(); i++) {
+//            List<Point> chosen = chooseK(parents, k);
+//            Point child = new Point();
+//            List<Double> dims = new ArrayList<>();
+//            List<Double> sigmas = new ArrayList<>();
+//
+//            for (int j = 0; j < dim; j++) {
+//                double sumCoords = 0;
+//                double sumSigmas = 0;
+//                for (Point p : chosen) {
+//                    sumCoords += p.getCoords().get(j);
+//                    sumSigmas += p.getSigmas().get(j);
+//                }
+//                dims.add(sumCoords / k);
+//                sigmas.add(sumSigmas / k);
+//            }
+//
+//            child.setCoords(dims);
+//            child.setSigmas(sigmas);
+//            children.add(child);
+//        }
+//
+//        return children;
+//    }
+    // sbx
+    private List<Point> recombine(List<Point> parents, int dim) {
         List<Point> children = new ArrayList<>();
+        double eta = 15.0;
+        double crossoverProb = 0.9;
 
-        for (int i = 0; i < parents.size(); i++) {
-            List<Point> chosen = chooseK(parents, k);
-            Point child = new Point();
-            List<Double> dims = new ArrayList<>();
-            List<Double> sigmas = new ArrayList<>();
-
-            for (int j = 0; j < dim; j++) {
-                double sumCoords = 0;
-                double sumSigmas = 0;
-                for (Point p : chosen) {
-                    sumCoords += p.getCoords().get(j);
-                    sumSigmas += p.getSigmas().get(j);
-                }
-                dims.add(sumCoords / k);
-                sigmas.add(sumSigmas / k);
+        for (int i = 0; i < parents.size(); i += 2) {
+            if (i + 1 >= parents.size()) {
+                children.add(parents.get(i).copy());
+                break;
             }
 
-            child.setCoords(dims);
-            child.setSigmas(sigmas);
-            children.add(child);
+            Point p1 = parents.get(i);
+            Point p2 = parents.get(i + 1);
+
+            if (rn.nextDouble() > crossoverProb) {
+                children.add(p1.copy());
+                children.add(p2.copy());
+                continue;
+            }
+
+            Point c1 = new Point();
+            Point c2 = new Point();
+            List<Double> coords1 = new ArrayList<>();
+            List<Double> coords2 = new ArrayList<>();
+            List<Double> sigmas1 = new ArrayList<>();
+            List<Double> sigmas2 = new ArrayList<>();
+
+            for (int j = 0; j < dim; j++) {
+                double x1 = p1.getCoords().get(j);
+                double x2 = p2.getCoords().get(j);
+                double sigma1 = p1.getSigmas().get(j);
+                double sigma2 = p2.getSigmas().get(j);
+
+                if (rn.nextDouble() < 0.5) {
+                    double temp = x1;
+                    x1 = x2;
+                    x2 = temp;
+                }
+                double u = rn.nextDouble();
+                double beta;
+
+                if (u <= 0.5) {
+                    beta = Math.pow(2.0 * u, 1.0 / (eta + 1.0));
+                } else {
+                    beta = Math.pow(1.0 / (2.0 * (1.0 - u)), 1.0 / (eta + 1.0));
+                }
+                double y1 = 0.5 * ((1 + beta) * x1 + (1 - beta) * x2);
+                double y2 = 0.5 * ((1 - beta) * x1 + (1 + beta) * x2);
+
+                double childSigma1 = Math.sqrt(Math.abs(sigma1 * sigma2)); // średnia geometryczna
+                double childSigma2 = childSigma1;
+
+                coords1.add(y1);
+                coords2.add(y2);
+                sigmas1.add(childSigma1);
+                sigmas2.add(childSigma2);
+            }
+
+            c1.setCoords(coords1);
+            c1.setSigmas(sigmas1);
+            c2.setCoords(coords2);
+            c2.setSigmas(sigmas2);
+            children.add(c1);
+            children.add(c2);
         }
 
         return children;
@@ -263,14 +374,6 @@ public class NSGA2 {
                 p.setSigmas(newSigmas);
             }
         }
-    }
-
-    private List<Point> chooseK(List<Point> parents, int k) {
-        List<Point> chosen = new ArrayList<>();
-        for (int i = 0; i < k; i++) {
-            chosen.add(parents.get(rn.nextInt(parents.size())));
-        }
-        return chosen;
     }
 
     private void mutation(List<Point> children, int dim) {
