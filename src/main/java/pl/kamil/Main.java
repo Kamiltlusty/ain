@@ -231,7 +231,7 @@ public class Main {
     public static void lab9() {
         int populationSize = 100;
         int m = 30;
-        var eFun = new ZDT4();
+        var eFun = new ZDT6();
         int l = 2;
         int k = 2;
         var alpha = 0.04;
@@ -239,7 +239,8 @@ public class Main {
         var nsga2 = new NSGA2(eFun, new Naive(), new RandomlyGeneratedNumbers());
         List<Point> points = nsga2.runExperiment(populationSize, m, l, k, alpha);
         TXTExport export = new TXTExport();
-        export.save(points, "front", true);
+
+        export.save(points, eFun.getClass().getSimpleName() + "_front_"  + populationSize, true);
     }
 
     public static void main(String[] args) {
