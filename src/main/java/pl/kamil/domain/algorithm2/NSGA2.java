@@ -3,6 +3,7 @@ package pl.kamil.domain.algorithm2;
 import pl.kamil.domain.algorithm.Naive;
 import pl.kamil.domain.model.Point;
 import pl.kamil.domain.service.RandomlyGeneratedNumbers;
+import pl.kamil.infrastructure.adapters.TXTExport;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -13,12 +14,16 @@ public class NSGA2 {
     private final ParetoEvalFunc zdt;
     private final Naive naive;
     private final RandomlyGeneratedNumbers rn;
-    private static int counter = 0;
+    private final TXTExport export;
+    private int counter = 0;
+    private final List<Integer> saveIterations = List.of(20, 50, 100, 500);
+    private final List<List<Point>> savedFronts = new ArrayList<>();
 
-    public NSGA2(ParetoEvalFunc zdt, Naive naive, RandomlyGeneratedNumbers rn) {
+    public NSGA2(ParetoEvalFunc zdt, Naive naive, RandomlyGeneratedNumbers rn, TXTExport export) {
         this.zdt = zdt;
         this.naive = naive;
         this.rn = rn;
+        this.export = export;
     }
 
     public static List<Double> generateNDecisionVariables(int n) {
@@ -30,7 +35,7 @@ public class NSGA2 {
         return values;
     }
 
-    public List<Point> runExperiment(int populationSize, int m, int l, int k, double alpha) {
+    public List<Point> runExperiment(int populationSize, int m, int l, int k, double alpha, String functionName, int dimensions) {
         Double initialSigma = alpha;
         List<Point> population = Stream.generate(Point::new).limit(populationSize).toList();
         // generuję im m losowych wartosci zmiennych decyzyjnych
@@ -43,6 +48,11 @@ public class NSGA2 {
 
         findRanks(population);
         while (counter < 500) {
+            counter++;
+            if (saveIterations.contains(counter)) {
+                saveCurrentFront(population, functionName, dimensions, counter);
+            }
+
 //         EAOffSpringGen
             List<Point> combined = EAOffspringGen(population, m, l, k);
             findRanks(combined);
@@ -55,11 +65,26 @@ public class NSGA2 {
             result.addAll(overloadRank.stream().limit(populationSize - result.size()).toList());
             population = new ArrayList<>(result);
             repairSigmasInPopulation(population, m);
-            counter++;
+            //counter++;
         }
+        saveCurrentFront(population, functionName, dimensions, 500);
+
         return population;
     }
 
+    private void saveCurrentFront(List<Point> population, String functionName, int dimensions, int iteration) {
+        // Znajdź punkty z rankiem 1 (front Pareto)
+        List<Point> front = population.stream()
+                .filter(p -> p.getRank() == 1)
+                .collect(ArrayList::new, ArrayList::add, ArrayList::addAll);
+
+        // Zapisz front do pliku
+        String filename = String.format("%s_%dd_iter%d", functionName, dimensions, iteration);
+        export.save(front, filename, true);
+
+        // Dodaj do listy zapisanych frontów
+        savedFronts.add(front);
+    }
 
     public void findRanks(List<Point> points) {
         List<Point> tmp = new ArrayList<>(points);

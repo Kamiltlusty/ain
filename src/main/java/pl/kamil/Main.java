@@ -18,6 +18,7 @@ import pl.kamil.infrastructure.adapters.WritePointsFromTopic8Ex2Impl;
 import pl.kamil.infrastructure.adapters.ExcelExport;
 import pl.kamil.infrastructure.adapters.TXTExport;
 import pl.kamil.infrastructure.services.DataProcessor;
+import pl.kamil.domain.algorithm2.ParetoEvalFunc;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -230,17 +231,40 @@ public class Main {
 
     public static void lab9() {
         int populationSize = 100;
-        int m = 30;
-        var eFun = new ZDT6();
         int l = 2;
         int k = 2;
         var alpha = 0.04;
+        var export = new TXTExport();
+        var rn = new RandomlyGeneratedNumbers();
+        var naive = new Naive();
 
-        var nsga2 = new NSGA2(eFun, new Naive(), new RandomlyGeneratedNumbers());
-        List<Point> points = nsga2.runExperiment(populationSize, m, l, k, alpha);
-        TXTExport export = new TXTExport();
+        // Lista funkcji ZDT do testowania
+        List<ParetoEvalFunc> zdtFunctions = List.of(
+                new ZDT1(),
+                new ZDT2(),
+                new ZDT3(),
+                new ZDT4(),
+                new ZDT6()
+        );
 
-        export.save(points, eFun.getClass().getSimpleName() + "_front_"  + populationSize, true);
+        // Lista wymiarów do testowania
+        List<Integer> dimensions = List.of(10, 30, 50);
+
+        // Przeprowadź eksperymenty dla wszystkich kombinacji
+        for (ParetoEvalFunc zdtFunc : zdtFunctions) {
+            for (int dim : dimensions) {
+                System.out.println("Uruchomiono: " + zdtFunc.getClass().getSimpleName() + " dla " + dim + " wymiarow");
+
+                NSGA2 nsga2 = new NSGA2(zdtFunc, naive, rn, export);
+                List<pl.kamil.domain.model.Point> points = nsga2.runExperiment(
+                        populationSize, dim, l, k, alpha,
+                        zdtFunc.getClass().getSimpleName(), dim
+                );
+
+                System.out.println("Zakonczono: " + zdtFunc.getClass().getSimpleName() + " dla " + dim + " wymiarow");
+            }
+        }
+
     }
 
     public static void main(String[] args) {
