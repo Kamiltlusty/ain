@@ -31,6 +31,7 @@ public class NSGA2 {
         this.export = export;
     }
 
+    // Generuje n losowych zmiennych decyzyjnych (wartości w zakresie 0-1)
     public static List<Double> generateNDecisionVariables(int n) {
         var rng = new RandomlyGeneratedNumbers();
         List<Double> values = new ArrayList<>();
@@ -59,7 +60,7 @@ public class NSGA2 {
                 saveCurrentFrontToMemory(population, counter);
             }
 
-//         EAOffSpringGen
+            // EAOffSpringGen
             List<Point> combined = EAOffspringGen(population, m, l, k);
             findRanks(combined);
             combined.sort(Comparator.comparingDouble(Point::getRank));
@@ -80,6 +81,7 @@ public class NSGA2 {
         return population;
     }
 
+    // Zapisuje aktualny front Pareto do pamięci dla określonej iteracji
     private void saveCurrentFrontToMemory(List<Point> population, int iteration) {
         // Znajdź punkty z rankiem 1 (front Pareto)
         List<Point> front = population.stream()
@@ -97,6 +99,7 @@ public class NSGA2 {
         System.out.println("Zapisano front z iteracji " + iteration + " - " + front.size() + " punktow");
     }
 
+    // Zapisuje wszystkie zapisane fronty do jednego pliku TXT
     private void saveAllFrontsToOneFile(String functionName, int dimensions) {
         // Znajdź maksymalną liczbę punktów wśród wszystkich frontów
         int maxPoints = Math.max(
@@ -148,7 +151,7 @@ public class NSGA2 {
         }
 
         // Zapisz do pliku
-        String filename = String.format("%s_%dd_all_iterations", functionName, dimensions);
+        String filename = String.format("%s_%dd", functionName, dimensions);
         export.saveStringList(lines, filename);
 
         System.out.println("Zapisano wszystkie fronty do pliku: " + filename + ".txt");
@@ -156,6 +159,7 @@ public class NSGA2 {
         System.out.println("iter20_f1\titer20_f2\titer50_f1\titer50_f2\titer100_f1\titer100_f2\titer500_f1\titer500_f2");
     }
 
+    // Przypisuje rangi (ranks) punktom na podstawie dominacji Pareto
     public void findRanks(List<Point> points) {
         List<Point> tmp = new ArrayList<>(points);
         int i = 1;
@@ -170,6 +174,7 @@ public class NSGA2 {
         }
     }
 
+    // Generuje potomków poprzez selekcję, krzyżowanie i mutację
     private List<Point> EAOffspringGen(List<Point> population, int m, int l, int k) {
         calculateCrowdingDistancesForPopulation(population);
         // selection
@@ -187,6 +192,7 @@ public class NSGA2 {
         return combine(population, children);
     }
 
+    // Wypełnia wynikową populację punktami z kolejnych rang
     private List<Point> fillResult(List<Point> combined, int populationSize, List<Point> result) {
         int i = 1;
         while (true) {
@@ -200,6 +206,7 @@ public class NSGA2 {
         }
     }
 
+    // Łączy populację rodziców i dzieci
     private List<Point> combine(List<Point> population, List<Point> children) {
         List<Point> combined = new ArrayList<>();
         combined.addAll(population);
@@ -207,6 +214,7 @@ public class NSGA2 {
         return combined;
     }
 
+    // Oblicza odległości crowding dla całej populacji (dla każdego rangu osobno)
     private void calculateCrowdingDistancesForPopulation(List<Point> population) {
         List<List<Point>> pointsDividedByRanks = new ArrayList<>();
         int highestRank = findHighestRank(population);
@@ -248,7 +256,7 @@ public class NSGA2 {
         }
     }
 
-    // CrowdingSort
+    // CrowdingSort - Oblicza odległości crowding tylko dla jednego rangu i sortuje malejąco
     private void calculateCrowdingDistancesFor1Rank(List<Point> r) {
         int objectivesSize = r.get(0).getObjectives().size();
         for (int i = 0; i < objectivesSize; i++) {
@@ -277,6 +285,7 @@ public class NSGA2 {
         r.sort(Comparator.comparingDouble(Point::getCrowdingDistance).reversed());
     }
 
+    // Znajduje najwyższą rangę w populacji
     int findHighestRank(List<Point> population) {
         int highestRank = 1;
         for (Point point : population) {
@@ -312,6 +321,7 @@ public class NSGA2 {
 //        return parents;
 //    }
 
+    // Selekcja turniejowa z wieloma fazami
     private List<Point> select(List<Point> population, int l) {
         List<Point> parents = new ArrayList<>();
         int phases = 3;
@@ -387,7 +397,7 @@ public class NSGA2 {
 //
 //        return children;
 //    }
-    // sbx
+    // Krzyżowanie SBX (Simulated Binary Crossover)
     private List<Point> recombine(List<Point> parents, int dim) {
         List<Point> children = new ArrayList<>();
         double eta = 15.0;
@@ -457,6 +467,7 @@ public class NSGA2 {
         return children;
     }
 
+    // Naprawia wartości sigm w populacji (zapewnia poprawne wymiary)
     private void repairSigmasInPopulation(List<Point> population, int dim) {
         double currentSigma = 0.05;
 
@@ -471,6 +482,7 @@ public class NSGA2 {
         }
     }
 
+    // Mutacja z samoadaptacyjnymi sigmami
     private void mutation(List<Point> children, int dim) {
         double epsilon0 = 1e-8;
         double scaleFactor = 5;

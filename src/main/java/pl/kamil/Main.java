@@ -238,7 +238,7 @@ public class Main {
         var rn = new RandomlyGeneratedNumbers();
         var naive = new Naive();
 
-        // Lista funkcji ZDT do testowania
+        // Lista funkcji ZDT
         List<ParetoEvalFunc> zdtFunctions = List.of(
                 new ZDT1(),
                 new ZDT2(),
@@ -247,10 +247,9 @@ public class Main {
                 new ZDT6()
         );
 
-        // Lista wymiarów do testowania
-        List<Integer> dimensions = List.of(10, 30, 50);
+        List<Integer> dimensions = List.of(10, 30, 50); // Lista wymiarow
 
-        // Przeprowadź eksperymenty dla wszystkich kombinacji
+        // Przeprowadzenie eksperymentow dla wszystkich kombinacji
         for (ParetoEvalFunc zdtFunc : zdtFunctions) {
             for (int dim : dimensions) {
                 System.out.println("Uruchomiono: " + zdtFunc.getClass().getSimpleName() + " dla " + dim + " wymiarow");
